@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:wave/config.dart';
 import 'package:wave/wave.dart';
+import 'package:provider/provider.dart';
+import 'package:drinktracker/services/app_state.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -37,20 +39,13 @@ class _HomeState extends State<Home> {
   }
 
   int getML() {
-    String targetDateString =
-        "${_currentDate.month}/${_currentDate.day}/${_currentDate.year}";
+    final appState = Provider.of<AppState>(context, listen: false);
+    return appState.todayTotalML;
+  }
 
-    dynamic entriesOnTargetDate = historyList.where((entry) {
-      DateTime entryDate = parseDate(entry["datetime"]);
-      String entryDateString =
-          "${entryDate.month}/${entryDate.day}/${entryDate.year}";
-      return entryDateString == targetDateString;
-    }).toList();
-
-    int totalML =
-        entriesOnTargetDate.fold(0, (sum, entry) => sum + entry["ml_amount"]);
-
-    return totalML;
+  int getMaximumML() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    return appState.maximumML;
   }
 
   // Parse the date string in the format "MM/DD/YYYY hh:mma"
@@ -67,191 +62,228 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
-    int imageStep =
-        (getML() ~/ (appSettings['maximum_ML'] / imageSrc().water_step.length))
-            .clamp(0, imageSrc().water_step.length - 1);
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        int imageStep =
+            (getML() ~/ (getMaximumML() / imageSrc().water_step.length))
+                .clamp(0, imageSrc().water_step.length - 1);
 
-    return Scaffold(
-      backgroundColor: white,
-      body: Stack(
-        children: [
-          Container(
-            width: size.width,
-            height: size.height,
-            alignment: Alignment.bottomCenter,
-            child: Image.asset(
-              imageSrc().water_step[imageStep],
-            ),
-          ),
-          Container(
-              width: size.width,
-              height: size.height,
-              child: AnimatedWaveAnimation(
-                heightPercent: getML() / appSettings['maximum_ML'] * 100,
-                callback: refreshHomePage,
-              )),
-          SafeArea(
-            child: Column(children: [
-              CalendarWidget(
-                onChangeFocus: (value) {
-                  setState(() {
-                    _currentDate = value;
-                  });
-                },
-              ),
-              SizedBox(
-                height: 15,
+        return Scaffold(
+          backgroundColor: white,
+          body: Stack(
+            children: [
+              Container(
+                width: size.width,
+                height: size.height,
+                alignment: Alignment.bottomCenter,
+                child: Image.asset(
+                  imageSrc().water_step[imageStep],
+                ),
               ),
               Container(
-                child: Column(
-                  children: [
-                    Text(
-                      (_currentDate == _today)
-                          ? "Today"
-                          : "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: dark,
-                          fontSize: title_lg),
+                  width: size.width,
+                  height: size.height,
+                  child: AnimatedWaveAnimation(
+                    heightPercent: getML() / getMaximumML() * 100,
+                    callback: refreshHomePage,
+                  )),
+              SafeArea(
+                child: Column(children: [
+                  CalendarWidget(
+                    onChangeFocus: (value) {
+                      setState(() {
+                        _currentDate = value;
+                      });
+                      // Load history for selected date
+                      appState.loadHistoryForDate(value);
+                    },
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Container(
+                    child: Column(
+                      children: [
+                        Text(
+                          (_currentDate == _today)
+                              ? "Today"
+                              : "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: dark,
+                              fontSize: title_lg),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          "${getML()} ML",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: secondary,
+                              fontSize: title_xl),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Text.rich(TextSpan(children: [
+                          TextSpan(
+                            text: "Goal is ",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: black.withAlpha(80)),
+                          ),
+                          TextSpan(
+                            text: "${getMaximumML()} ML",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: dark.withAlpha(200)),
+                          )
+                        ], style: TextStyle(fontSize: text_md)))
+                      ],
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      "${getML()} ML",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: secondary,
-                          fontSize: title_xl),
-                    ),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Text.rich(TextSpan(children: [
-                      TextSpan(
-                        text: "Goal is ",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: black.withAlpha(80)),
-                      ),
-                      TextSpan(
-                        text: "${appSettings['maximum_ML']} ML",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: dark.withAlpha(200)),
-                      )
-                    ], style: TextStyle(fontSize: text_md)))
-                  ],
-                ),
+                  ),
+                ]),
               ),
-            ]),
+              Container(
+                  width: size.width,
+                  height: size.height,
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        bottom: 15.0,
+                        right: size.width * 0.05,
+                        left: size.width * 0.1),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: CircleBorder(),
+                              color: white,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () async {
+                                  PopupService().show(context,
+                                      callback: refreshHomePage,
+                                      dialog: Popup_ChooseDrink(),
+                                      outsideHint: "hold to edit");
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: Icon(
+                                    Icons.add,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: CircleBorder(),
+                              color: secondary,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () {
+                                  try {
+                                    Navigator.pushNamed(context, "/statistics");
+                                  } catch (e) {
+                                    print("Error navigating to statictis: $e");
+                                  }
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: Icon(
+                                    Icons.bar_chart_sharp,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: CircleBorder(),
+                              color: secondary,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () {
+                                  try {
+                                    Navigator.pushNamed(context, "/history");
+                                  } catch (e) {
+                                    print("Error navigating to history: $e");
+                                  }
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: Icon(
+                                    Icons.history,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: CircleBorder(),
+                              color: secondary,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () {
+                                  try {
+                                    Navigator.pushNamed(context, "/settings");
+                                  } catch (e) {
+                                    print("Error navigating to settings: $e");
+                                  }
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: Icon(
+                                    Icons.settings,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
           ),
-          Container(
-              width: size.width,
-              height: size.height,
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: 15.0,
-                    right: size.width * 0.05,
-                    left: size.width * 0.1),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Material(
-                          elevation: 0,
-                          shape: CircleBorder(),
-                          color: white,
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            backgroundColor: secondary,
-                            onPressed: () async {
-                              PopupService().show(context,
-                                  callback: refreshHomePage,
-                                  dialog: Popup_ChooseDrink(),
-                                  outsideHint: "hold to edit");
-                            },
-                            child: Transform.scale(
-                              scale: 1.4,
-                              child: Icon(
-                                Icons.add,
-                                color: white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Flexible(
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Material(
-                          elevation: 0,
-                          shape: CircleBorder(),
-                          color: secondary,
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            backgroundColor: secondary,
-                            onPressed: () {
-                              try {
-                                Navigator.pushNamed(context, "/statistics");
-                              } catch (e) {
-                                print("Error navigating to statictis: $e");
-                              }
-                            },
-                            child: Transform.scale(
-                              scale: 1.4,
-                              child: Icon(
-                                Icons.bar_chart_sharp,
-                                color: white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Flexible(
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Material(
-                          elevation: 0,
-                          shape: CircleBorder(),
-                          color: secondary,
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            backgroundColor: secondary,
-                            onPressed: () {
-                              try {
-                                Navigator.pushNamed(context, "/history");
-                              } catch (e) {
-                                print("Error navigating to history: $e");
-                              }
-                            },
-                            child: Transform.scale(
-                              scale: 1.4,
-                              child: Icon(
-                                Icons.history,
-                                color: white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-        ],
-      ),
+        );
+      },
     );
   }
 }

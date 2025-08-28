@@ -10,44 +10,68 @@ import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:drinktracker/services/app_state.dart';
 
 class Popup_ChooseML extends StatelessWidget {
-  final int drinksID;
+  final String drinksID;
   const Popup_ChooseML({super.key, required this.drinksID});
 
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
-    dynamic drinksData = DrinksService().getDrinksByID(drinksID);
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final drinksData = appState.getDrinkById(drinksID);
+        
+        if (drinksData == null) {
+          return Column(
+            children: [
+              PopupService().getHeader(
+                context: context,
+                title: "Drink not found",
+                canBack: true,
+                onBack: () {
+                  Navigator.of(context).pop();
+                  PopupService().show(context,
+                      dialog: Popup_ChooseDrink(), outsideHint: "hold to edit");
+                },
+              ),
+              Text("Drink not found"),
+            ],
+          );
+        }
 
-    return Column(
-      children: [
-        PopupService().getHeader(
-            context: context,
-            title: drinksData["name"],
-            titleIcon: drinksData["icon"],
-            canBack: true,
-            onBack: () {
-              Navigator.of(context).pop();
-              PopupService().show(context,
-                  dialog: Popup_ChooseDrink(), outsideHint: "hold to edit");
-            }),
-        SizedBox(
-          width: size.width,
-          child: Container(
-            alignment: Alignment.center,
-            child: Wrap(
-                alignment: WrapAlignment.start,
-                spacing: 10.0,
-                runSpacing: 10.0,
-                children: getMLList(context)),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        )
-      ],
+        return Column(
+          children: [
+            PopupService().getHeader(
+                context: context,
+                title: drinksData["name"],
+                titleIcon: appState.getDrinkIcon(drinksData["icon"]),
+                canBack: true,
+                onBack: () {
+                  Navigator.of(context).pop();
+                  PopupService().show(context,
+                      dialog: Popup_ChooseDrink(), outsideHint: "hold to edit");
+                }),
+            SizedBox(
+              width: size.width,
+              child: Container(
+                alignment: Alignment.center,
+                child: Wrap(
+                    alignment: WrapAlignment.start,
+                    spacing: 10.0,
+                    runSpacing: 10.0,
+                    children: getMLList(context)),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            )
+          ],
+        );
+      },
     );
   }
 
