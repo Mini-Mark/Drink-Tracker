@@ -9,9 +9,11 @@ import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:drinktracker/services/app_state.dart';
 
 class Popup_AddQuantity extends StatefulWidget {
-  final int drinksID;
+  final String drinksID;
   Popup_AddQuantity({super.key, required this.drinksID});
 
   @override
@@ -22,8 +24,9 @@ class _Popup_AddQuantityState extends State<Popup_AddQuantity> {
   TextEditingController _controller = TextEditingController();
   FocusNode _focusNode = FocusNode();
 
-  addAmount(context) {
-    MLService().addML(int.parse(_controller.text));
+  addAmount(context) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.addHistoryEntry(widget.drinksID, int.parse(_controller.text));
 
     back(context);
   }

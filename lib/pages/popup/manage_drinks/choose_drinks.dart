@@ -8,6 +8,8 @@ import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:drinktracker/services/app_state.dart';
 
 class Popup_ChooseDrink extends StatelessWidget {
   const Popup_ChooseDrink({super.key});
@@ -16,30 +18,34 @@ class Popup_ChooseDrink extends StatelessWidget {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
-    return Column(
-      children: [
-        PopupService().getHeader(context: context, title: "Drinks"),
-        SizedBox(
-          width: size.width,
-          child: Container(
-            alignment: Alignment.center,
-            child: Wrap(
-                alignment: WrapAlignment.start,
-                spacing: 10.0,
-                runSpacing: 10.0,
-                children: getDrinksList(context)),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        )
-      ],
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return Column(
+          children: [
+            PopupService().getHeader(context: context, title: "Drinks"),
+            SizedBox(
+              width: size.width,
+              child: Container(
+                alignment: Alignment.center,
+                child: Wrap(
+                    alignment: WrapAlignment.start,
+                    spacing: 10.0,
+                    runSpacing: 10.0,
+                    children: getDrinksList(context, appState)),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            )
+          ],
+        );
+      },
     );
   }
 
-  List<Widget> getDrinksList(context) {
+  List<Widget> getDrinksList(context, AppState appState) {
     List<Widget> drinkWidgets = List.generate(
-        drinkLists.length, (index) => drinksItem(context, drinkLists[index]));
+        appState.drinks.length, (index) => drinksItem(context, appState.drinks[index], appState));
     drinkWidgets.insert(0, addDrinksWidget(context));
 
     return drinkWidgets;
@@ -81,7 +87,7 @@ class Popup_ChooseDrink extends StatelessWidget {
     );
   }
 
-  Widget drinksItem(context, data) {
+  Widget drinksItem(context, data, AppState appState) {
     var size = MediaQuery.of(context).size;
     return InkWell(
       splashColor: primary.withAlpha(150),
@@ -100,39 +106,34 @@ class Popup_ChooseDrink extends StatelessWidget {
               alignment: Alignment.center,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: data["color"] == null
-                          ? light_secondary
-                          : UtilsService().HexToColor(data["color"]),
-                      width: 1.2)),
+                color: appState.getDrinkColor(data["color"]).withAlpha(50),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: appState.getDrinkColor(data["color"]).withAlpha(100),
+                  width: 1,
+                ),
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(data["icon"],
-                      color: data["color"] == null
-                          ? light_secondary
-                          : UtilsService().HexToColor(data["color"]),
-                      size: 25),
+                  Icon(
+                    appState.getDrinkIcon(data["icon"]),
+                    color: appState.getDrinkColor(data["color"]),
+                    size: 50,
+                  ),
                   SizedBox(
                     height: 8,
                   ),
-                  SizedBox(
-                    width: size.width * 0.25,
-                    child: AutoSizeText(
-                      data["name"],
-                      style: TextStyle(
-                        color: data["color"] == null
-                            ? light_secondary
-                            : UtilsService().HexToColor(data["color"]),
-                      ),
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      minFontSize: 10,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )
+                  AutoSizeText(
+                    data["name"],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: dark,
+                        fontSize: 14),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               )),
         ),

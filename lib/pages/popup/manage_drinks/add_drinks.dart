@@ -8,6 +8,8 @@ import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:drinktracker/services/app_state.dart';
 
 class Popup_AddDrinks extends StatefulWidget {
   @override
@@ -20,10 +22,29 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
 
   int choosePosition = 0;
 
-  addDrinks(context) {
-    DrinksService().addDrinks(_controller.text, drinksIconList[choosePosition]);
+  addDrinks(context) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    
+    // Convert icon to string format for database storage
+    String iconString = _getIconString(drinksIconList[choosePosition]);
+    
+    await appState.addDrink(_controller.text, iconString, null);
 
     back(context);
+  }
+
+  String _getIconString(IconData icon) {
+    // Convert IconData to string representation
+    if (icon == Icons.water_drop) return 'Icons.water_drop';
+    if (icon == Icons.coffee) return 'Icons.coffee';
+    if (icon == Icons.local_cafe) return 'Icons.local_cafe';
+    if (icon == Icons.local_bar) return 'Icons.local_bar';
+    if (icon == Icons.local_drink) return 'Icons.local_drink';
+    if (icon == Icons.sports_bar) return 'Icons.sports_bar';
+    if (icon == Icons.local_pizza) return 'Icons.local_pizza';
+    if (icon == Icons.icecream) return 'Icons.icecream';
+    if (icon == Icons.cake) return 'Icons.cake';
+    return 'Icons.water_drop'; // default
   }
 
   back(context) {
