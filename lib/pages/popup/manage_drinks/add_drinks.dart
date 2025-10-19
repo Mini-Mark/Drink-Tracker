@@ -21,23 +21,23 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
   int choosePosition = 0;
   Color? selectedColor;
 
+  @override
+  void initState() {
+    super.initState();
+    // Set default color to first color in palette
+    selectedColor = colorPalette[0];
+  }
+
   // Color palette options
   final List<Color> colorPalette = [
-    const Color(0xFF76B1D7), // primary
     const Color(0xFF366C8E), // secondary
-    const Color(0xFF3B7DA8), // light_secondary
     const Color(0xFFFFBF5E), // warning
-    const Color(0xFF00FF85), // success
     const Color(0xFFFF7070), // danger
     const Color(0xFFFFC700), // edit
-    const Color(0xFF9C27B0), // purple
     const Color(0xFFE91E63), // pink
     const Color(0xFFF44336), // red
     const Color(0xFFFF9800), // orange
     const Color(0xFF4CAF50), // green
-    const Color(0xFF2196F3), // blue
-    const Color(0xFF00BCD4), // cyan
-    const Color(0xFF795548), // brown
     const Color(0xFF607D8B), // blue grey
   ];
 
@@ -101,12 +101,6 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Color",
-              style: TextStyle(
-                  fontSize: 14, color: dark, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 10),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -120,17 +114,11 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 25,
+                    height: 25,
                     decoration: BoxDecoration(
                       color: colorPalette[index],
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: selectedColor == colorPalette[index]
-                            ? dark
-                            : Colors.transparent,
-                        width: 3,
-                      ),
                     ),
                     child: selectedColor == colorPalette[index]
                         ? const Icon(Icons.check, color: white, size: 20)
@@ -172,7 +160,9 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
                             borderRadius: BorderRadius.circular(5)),
                         child: Icon(
                           drinksIconList[index],
-                          color: choosePosition == index ? secondary : dark,
+                          color: choosePosition == index
+                              ? (selectedColor ?? colorPalette[0])
+                              : dark,
                           size: size.width * 0.07,
                         ),
                       ),

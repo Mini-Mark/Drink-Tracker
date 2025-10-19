@@ -27,7 +27,7 @@ class _BottomNavigatorState extends State<BottomNavigator> {
     Icons.store,
   ];
   final labelList = ["Home", "Statistics", "History", "Settings", "Shop"];
-  
+
   late int _currentIndex;
   late List<Widget> _pages;
 
@@ -55,6 +55,7 @@ class _BottomNavigatorState extends State<BottomNavigator> {
         children: _pages,
       ),
       bottomNavigationBar: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           // Navigation bar
@@ -67,6 +68,7 @@ class _BottomNavigatorState extends State<BottomNavigator> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 8),
                   Icon(
                     iconList[index],
                     size: 24,
@@ -86,8 +88,8 @@ class _BottomNavigatorState extends State<BottomNavigator> {
             },
             backgroundColor: light_secondary,
             activeIndex: _currentIndex,
-            leftCornerRadius: 32,
-            rightCornerRadius: 32,
+            leftCornerRadius: 0,
+            rightCornerRadius: 0,
             onTap: (index) {
               setState(() {
                 _currentIndex = index;

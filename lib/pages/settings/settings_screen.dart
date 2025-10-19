@@ -634,7 +634,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 220,
+                        height: 240,
                         child: AnimatedWaveAnimation(
                           heightPercent: 100,
                           callback: () {},
@@ -649,22 +649,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Padding(
                           padding: const EdgeInsets.only(top: 24),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
-                                Icons.water_drop,
-                                color: dark,
-                                size: 48,
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Daily Water Goal',
-                                style: TextStyle(
-                                  fontSize: title_md,
-                                  color: dark,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 44),
                               Text(
                                 '${profile.dailyWaterRequirement} ml',
                                 style: const TextStyle(
