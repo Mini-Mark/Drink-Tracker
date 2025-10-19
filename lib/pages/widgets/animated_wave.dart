@@ -6,11 +6,13 @@ import 'package:wave/wave.dart';
 class AnimatedWaveAnimation extends StatefulWidget {
   final double heightPercent;
   final dynamic callback;
+  final Color? color;
 
   const AnimatedWaveAnimation({
     Key? key,
     required this.heightPercent,
     required this.callback,
+    this.color,
   }) : super(key: key);
 
   @override
@@ -123,12 +125,13 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
 
         // Add slight color intensity boost during pulse
         final colorBoost = isPulsing ? (pulseAnimation.value * 30).toInt() : 0;
+        final waveColor = widget.color ?? primary;
 
         return WaveWidget(
           config: CustomConfig(
             colors: [
-              primary.withAlpha(80 + colorBoost),
-              primary.withAlpha(50 + colorBoost),
+              waveColor.withAlpha(80 + colorBoost),
+              waveColor.withAlpha(50 + colorBoost),
             ],
             durations: [25000, 19440],
             heightPercentages: [

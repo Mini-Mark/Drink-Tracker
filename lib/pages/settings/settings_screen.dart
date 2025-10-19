@@ -638,6 +638,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: AnimatedWaveAnimation(
                           heightPercent: 100,
                           callback: () {},
+                          color: primary,
                         ),
                       ),
 
