@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:drinktracker/data_json/ml_json.dart';
-import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_ml.dart';
 import 'package:drinktracker/pages/widgets/textfield.dart';
 import 'package:drinktracker/services/ml_service.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Popup_AddQuantity extends StatefulWidget {
@@ -21,8 +18,44 @@ class Popup_AddQuantity extends StatefulWidget {
 class _Popup_AddQuantityState extends State<Popup_AddQuantity> {
   TextEditingController _controller = TextEditingController();
   FocusNode _focusNode = FocusNode();
+  String? _errorMessage;
+
+  bool _validateVolume() {
+    final volumeText = _controller.text.trim();
+    
+    if (volumeText.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter a volume';
+      });
+      return false;
+    }
+
+    final volume = int.tryParse(volumeText);
+    if (volume == null) {
+      setState(() {
+        _errorMessage = 'Please enter a valid number';
+      });
+      return false;
+    }
+
+    if (volume < 1 || volume > 2000) {
+      setState(() {
+        _errorMessage = 'Volume must be between 1 and 2000 ml';
+      });
+      return false;
+    }
+
+    setState(() {
+      _errorMessage = null;
+    });
+    return true;
+  }
 
   addAmount(context) {
+    if (!_validateVolume()) {
+      return;
+    }
+    
     MLService().addML(int.parse(_controller.text));
 
     back(context);
@@ -39,8 +72,6 @@ class _Popup_AddQuantityState extends State<Popup_AddQuantity> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
-
     return Column(children: [
       Padding(
         padding: EdgeInsets.only(left: 15, right: 15, top: 15),
@@ -60,15 +91,37 @@ class _Popup_AddQuantityState extends State<Popup_AddQuantity> {
       ),
       Padding(
           padding: const EdgeInsets.only(left: 25, right: 25),
-          child: CustomTextField(
-              labelText: "Quantity",
-              controller: _controller,
-              isNumber: true,
-              maxLength: 4,
-              focusNode: _focusNode,
-              onChange: (value) {
-                setState(() {});
-              })),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomTextField(
+                  labelText: "Quantity",
+                  controller: _controller,
+                  isNumber: true,
+                  maxLength: 4,
+                  focusNode: _focusNode,
+                  onChange: (value) {
+                    if (_errorMessage != null) {
+                      setState(() {
+                        _errorMessage = null;
+                      });
+                    } else {
+                      setState(() {});
+                    }
+                  }),
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 12),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: danger,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          )),
       SizedBox(
         height: 20,
       ),

@@ -7,27 +7,35 @@ class AnimatedWaveAnimation extends StatefulWidget {
   final double heightPercent;
   final dynamic callback;
 
-  AnimatedWaveAnimation({required this.heightPercent, required this.callback});
+  const AnimatedWaveAnimation({
+    Key? key,
+    required this.heightPercent,
+    required this.callback,
+  }) : super(key: key);
 
   @override
   State<AnimatedWaveAnimation> createState() => _AnimatedWaveAnimationState();
 }
 
 class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late Animation<double> animation;
   late AnimationController controller;
+  late AnimationController pulseController;
+  late Animation<double> pulseAnimation;
 
   double heightAnimation = 0.0;
+  bool isPulsing = false;
 
   @override
   void initState() {
     super.initState();
     controller =
-        AnimationController(duration: const Duration(seconds: 2), vsync: this);
+        AnimationController(duration: const Duration(milliseconds: 1500), vsync: this);
     animation =
-        Tween<double>(begin: 0, end: widget.heightPercent).animate(controller)
-          ..addListener(() async {
+        Tween<double>(begin: 0, end: widget.heightPercent).animate(
+          CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+        )..addListener(() async {
             Function callbackFunc = await widget.callback;
             callbackFunc(1);
 
@@ -50,43 +58,83 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
             } else {
               controller.stop();
             }
-
-            print("Animation: ${animation.value}");
           });
+    
+    // Pulse animation for when drinks are added
+    pulseController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: pulseController, curve: Curves.easeOut),
+    );
+    
     controller.forward();
   }
 
   @override
   void didUpdateWidget(covariant AnimatedWaveAnimation oldWidget) {
-    print("NEW: ${widget.heightPercent}");
-    print("OLD: ${oldWidget.heightPercent}");
-    print("heightAnimation: ${heightAnimation}");
-
     if (widget.heightPercent != heightAnimation) {
       controller.animateTo(widget.heightPercent);
+      
+      // Trigger pulse animation when height increases
+      if (widget.heightPercent > oldWidget.heightPercent) {
+        _triggerPulse();
+      }
     }
     super.didUpdateWidget(oldWidget);
+  }
+
+  void _triggerPulse() {
+    if (!isPulsing) {
+      setState(() {
+        isPulsing = true;
+      });
+      pulseController.forward(from: 0.0).then((_) {
+        if (mounted) {
+          setState(() {
+            isPulsing = false;
+          });
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     controller.dispose();
+    pulseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return WaveWidget(
-      config: CustomConfig(
-        colors: [primary.withAlpha(80), primary.withAlpha(50)],
-        durations: [25000, 19440],
-        heightPercentages: [
-          1 - 0.12 - (heightAnimation * 0.01),
-          1 - 0.12 - ((heightAnimation * 0.01 + 0.01)),
-        ],
-      ),
-      waveAmplitude: 25.0,
-      size: Size(double.infinity, double.infinity),
+    return AnimatedBuilder(
+      animation: pulseAnimation,
+      builder: (context, child) {
+        // Add pulse effect to wave amplitude when drink is added
+        final amplitudeBoost = isPulsing ? pulseAnimation.value * 15.0 : 0.0;
+        final waveAmplitude = 25.0 + amplitudeBoost;
+        
+        // Add slight color intensity boost during pulse
+        final colorBoost = isPulsing ? (pulseAnimation.value * 30).toInt() : 0;
+        
+        return WaveWidget(
+          config: CustomConfig(
+            colors: [
+              primary.withAlpha(80 + colorBoost),
+              primary.withAlpha(50 + colorBoost),
+            ],
+            durations: [25000, 19440],
+            heightPercentages: [
+              1 - 0.12 - (heightAnimation * 0.01),
+              1 - 0.12 - ((heightAnimation * 0.01 + 0.01)),
+            ],
+          ),
+          waveAmplitude: waveAmplitude,
+          size: const Size(double.infinity, double.infinity),
+        );
+      },
     );
   }
 }

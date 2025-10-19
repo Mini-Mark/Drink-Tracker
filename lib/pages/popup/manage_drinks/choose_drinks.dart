@@ -6,7 +6,6 @@ import 'package:drinktracker/pages/popup/manage_drinks/choose_ml.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Popup_ChooseDrink extends StatelessWidget {
@@ -104,7 +103,7 @@ class Popup_ChooseDrink extends StatelessWidget {
                   border: Border.all(
                       color: data["color"] == null
                           ? light_secondary
-                          : UtilsService().HexToColor(data["color"]),
+                          : UtilsService().hexToColor(data["color"]),
                       width: 1.2)),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -113,7 +112,7 @@ class Popup_ChooseDrink extends StatelessWidget {
                   Icon(data["icon"],
                       color: data["color"] == null
                           ? light_secondary
-                          : UtilsService().HexToColor(data["color"]),
+                          : UtilsService().hexToColor(data["color"]),
                       size: 25),
                   SizedBox(
                     height: 8,
@@ -125,7 +124,7 @@ class Popup_ChooseDrink extends StatelessWidget {
                       style: TextStyle(
                         color: data["color"] == null
                             ? light_secondary
-                            : UtilsService().HexToColor(data["color"]),
+                            : UtilsService().hexToColor(data["color"]),
                       ),
                       maxLines: 2,
                       textAlign: TextAlign.center,

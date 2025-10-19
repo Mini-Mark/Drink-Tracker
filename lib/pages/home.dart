@@ -1,14 +1,14 @@
-import 'package:drinktracker/data_json/app_settings.dart';
-import 'package:drinktracker/data_json/history.json.dart';
 import 'package:drinktracker/data_json/image_src.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/widgets/animated_wave.dart';
+import 'package:drinktracker/pages/widgets/aquarium_widget.dart';
+import 'package:drinktracker/pages/widgets/ripple_animation.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/font_size.dart';
 import 'package:flutter/material.dart';
 import 'package:drinktracker/theme/color.dart';
-import 'package:wave/config.dart';
-import 'package:wave/wave.dart';
+import 'package:provider/provider.dart';
+import '../../providers/app_state.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -18,256 +18,314 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late DateTime _currentDate;
-
-  DateTime _today =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  bool _showSplash = false;
 
   @override
   void initState() {
-    _currentDate = _today;
     super.initState();
   }
 
   refreshHomePage(second) async {
-    Future.delayed(Duration(seconds: second), () {
-      setState(() {});
-      print("refresh");
+    // Trigger splash animation
+    setState(() {
+      _showSplash = true;
     });
-  }
 
-  int getML() {
-    String targetDateString =
-        "${_currentDate.month}/${_currentDate.day}/${_currentDate.year}";
-
-    dynamic entriesOnTargetDate = historyList.where((entry) {
-      DateTime entryDate = parseDate(entry["datetime"]);
-      String entryDateString =
-          "${entryDate.month}/${entryDate.day}/${entryDate.year}";
-      return entryDateString == targetDateString;
-    }).toList();
-
-    int totalML =
-        entriesOnTargetDate.fold(0, (sum, entry) => sum + entry["ml_amount"]);
-
-    return totalML;
-  }
-
-  // Parse the date string in the format "MM/DD/YYYY hh:mma"
-  DateTime parseDate(String dateString) {
-    List<String> parts = dateString.split(new RegExp(r'[ /:]'));
-    int month = int.parse(parts[0]);
-    int day = int.parse(parts[1]);
-    int year = int.parse(parts[2]);
-
-    return DateTime(year, month, day);
+    Future.delayed(Duration(seconds: second), () {
+      if (mounted) {
+        setState(() {
+          _showSplash = false;
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        var size = MediaQuery.of(context).size;
 
-    int imageStep =
-        (getML() ~/ (appSettings['maximum_ML'] / imageSrc().water_step.length))
-            .clamp(0, imageSrc().water_step.length - 1);
+        // Get data from AppState
+        final selectedDate = appState.selectedDate;
+        final currentML = appState.getTotalConsumptionForSelectedDate();
+        final dailyRequirement =
+            appState.userProfile?.dailyWaterRequirement ?? 2000;
 
-    return Scaffold(
-      backgroundColor: white,
-      body: Stack(
-        children: [
-          Container(
-            width: size.width,
-            height: size.height,
-            alignment: Alignment.bottomCenter,
-            child: Image.asset(
-              imageSrc().water_step[imageStep],
-            ),
-          ),
-          Container(
-              width: size.width,
-              height: size.height,
-              child: AnimatedWaveAnimation(
-                heightPercent: getML() / appSettings['maximum_ML'] * 100,
-                callback: refreshHomePage,
-              )),
-          SafeArea(
-            child: Column(children: [
-              CalendarWidget(
-                onChangeFocus: (value) {
-                  setState(() {
-                    _currentDate = value;
-                  });
-                },
+        // Calculate image step based on consumption (with safety checks)
+        final waterSteps = imageSrc().water_step;
+        int imageStep = 0;
+        if (waterSteps.isNotEmpty && dailyRequirement > 0) {
+          imageStep = (currentML ~/ (dailyRequirement / waterSteps.length))
+              .clamp(0, waterSteps.length - 1);
+        }
+
+        // Check if selected date is today
+        final today = DateTime.now();
+        final isToday = selectedDate.year == today.year &&
+            selectedDate.month == today.month &&
+            selectedDate.day == today.day;
+
+        return Scaffold(
+          backgroundColor: white,
+          body: Stack(
+            children: [
+              Container(
+                width: size.width,
+                height: size.height,
+                alignment: Alignment.bottomCenter,
+                child: Image.asset(
+                  imageSrc().water_step[imageStep],
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
               SizedBox(
-                height: 15,
+                width: size.width,
+                height: size.height,
+                child: AnimatedWaveAnimation(
+                  heightPercent: dailyRequirement > 0
+                      ? (currentML / dailyRequirement * 100).clamp(0.0, 100.0)
+                      : 0.0,
+                  callback: refreshHomePage,
+                ),
+              ),
+              // Add aquarium widget
+              const AquariumWidget(),
+              // Splash animation overlay
+              if (_showSplash)
+                SplashAnimationOverlay(
+                  onComplete: () {
+                    if (mounted) {
+                      setState(() {
+                        _showSplash = false;
+                      });
+                    }
+                  },
+                ),
+              SafeArea(
+                child: Column(children: [
+                  CalendarWidget(
+                    selectedDate: selectedDate,
+                    onChangeFocus: (value) {
+                      appState.changeSelectedDate(value);
+                    },
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        isToday
+                            ? "Today"
+                            : "${selectedDate.year}/${selectedDate.month}/${selectedDate.day}",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: dark,
+                            fontSize: title_lg),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "$currentML ML",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: secondary,
+                            fontSize: title_xl),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      Text.rich(TextSpan(children: [
+                        const TextSpan(
+                          text: "Goal is ",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xCCC8C8C8)),
+                        ),
+                        TextSpan(
+                          text: "$dailyRequirement ML",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: dark.withAlpha(200)),
+                        )
+                      ], style: const TextStyle(fontSize: text_md)))
+                    ],
+                  ),
+                ]),
               ),
               Container(
-                child: Column(
-                  children: [
-                    Text(
-                      (_currentDate == _today)
-                          ? "Today"
-                          : "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: dark,
-                          fontSize: title_lg),
+                  width: size.width,
+                  height: size.height,
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        bottom: 15.0,
+                        right: size.width * 0.05,
+                        left: size.width * 0.1),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: const CircleBorder(),
+                              color: white,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () async {
+                                  PopupService().show(context,
+                                      callback: refreshHomePage,
+                                      dialog: const Popup_ChooseDrink(),
+                                      outsideHint: "hold to edit");
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: const CircleBorder(),
+                              color: secondary,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () {
+                                  try {
+                                    Navigator.pushNamed(context, "/statistics");
+                                  } catch (e) {
+                                    // Error navigating
+                                  }
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: const Icon(
+                                    Icons.bar_chart_sharp,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Flexible(
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Material(
+                              elevation: 0,
+                              shape: const CircleBorder(),
+                              color: secondary,
+                              child: FloatingActionButton(
+                                heroTag: null,
+                                backgroundColor: secondary,
+                                onPressed: () {
+                                  try {
+                                    Navigator.pushNamed(context, "/history");
+                                  } catch (e) {
+                                    // Error navigating
+                                  }
+                                },
+                                child: Transform.scale(
+                                  scale: 1.4,
+                                  child: const Icon(
+                                    Icons.history,
+                                    color: white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      "${getML()} ML",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: secondary,
-                          fontSize: title_xl),
-                    ),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Text.rich(TextSpan(children: [
-                      TextSpan(
-                        text: "Goal is ",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: black.withAlpha(80)),
-                      ),
-                      TextSpan(
-                        text: "${appSettings['maximum_ML']} ML",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: dark.withAlpha(200)),
-                      )
-                    ], style: TextStyle(fontSize: text_md)))
-                  ],
-                ),
-              ),
-            ]),
+                  )),
+            ],
           ),
-          Container(
-              width: size.width,
-              height: size.height,
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: 15.0,
-                    right: size.width * 0.05,
-                    left: size.width * 0.1),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Material(
-                          elevation: 0,
-                          shape: CircleBorder(),
-                          color: white,
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            backgroundColor: secondary,
-                            onPressed: () async {
-                              PopupService().show(context,
-                                  callback: refreshHomePage,
-                                  dialog: Popup_ChooseDrink(),
-                                  outsideHint: "hold to edit");
-                            },
-                            child: Transform.scale(
-                              scale: 1.4,
-                              child: Icon(
-                                Icons.add,
-                                color: white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Flexible(
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Material(
-                          elevation: 0,
-                          shape: CircleBorder(),
-                          color: secondary,
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            backgroundColor: secondary,
-                            onPressed: () {
-                              try {
-                                Navigator.pushNamed(context, "/statistics");
-                              } catch (e) {
-                                print("Error navigating to statictis: $e");
-                              }
-                            },
-                            child: Transform.scale(
-                              scale: 1.4,
-                              child: Icon(
-                                Icons.bar_chart_sharp,
-                                color: white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Flexible(
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Material(
-                          elevation: 0,
-                          shape: CircleBorder(),
-                          color: secondary,
-                          child: FloatingActionButton(
-                            heroTag: null,
-                            backgroundColor: secondary,
-                            onPressed: () {
-                              try {
-                                Navigator.pushNamed(context, "/history");
-                              } catch (e) {
-                                print("Error navigating to history: $e");
-                              }
-                            },
-                            child: Transform.scale(
-                              scale: 1.4,
-                              child: Icon(
-                                Icons.history,
-                                color: white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class CalendarWidget extends StatefulWidget {
   final ValueChanged<DateTime> onChangeFocus;
+  final DateTime selectedDate;
 
-  const CalendarWidget({Key? key, required this.onChangeFocus})
-      : super(key: key);
+  const CalendarWidget({
+    Key? key,
+    required this.onChangeFocus,
+    required this.selectedDate,
+  }) : super(key: key);
 
   @override
   State<CalendarWidget> createState() => _CalendarWidgetState();
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
-  int _focusDay = DateTime.now().day;
+  late ScrollController _scrollController;
+  bool _isScrollInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isScrollInitialized) {
+      _initializeScrollPosition();
+    }
+  }
+
+  void _initializeScrollPosition() {
+    if (_isScrollInitialized) return;
+    _isScrollInitialized = true;
+
+    final today = DateTime.now();
+    final indexOfToday = today.day - 1;
+    var indexOfThreeDaysAgo = indexOfToday - 3;
+    indexOfThreeDaysAgo = indexOfThreeDaysAgo < 0 ? 0 : indexOfThreeDaysAgo;
+
+    final size = MediaQuery.of(context).size;
+    final targetOffset = indexOfThreeDaysAgo * (size.width * 0.1428);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(targetOffset);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -276,19 +334,12 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     var firstDayOfMonth = DateTime(today.year, today.month, 1);
     var daysInMonth = DateTime(today.year, today.month + 1, 0).day;
 
-    var indexOfToday = today.day - 1;
-    var indexOfThreeDaysAgo = indexOfToday - 3;
-    indexOfThreeDaysAgo = indexOfThreeDaysAgo < 0 ? 0 : indexOfThreeDaysAgo;
-
-    var scrollController = ScrollController(
-        initialScrollOffset: indexOfThreeDaysAgo * (size.width * 0.1428));
-
-    return Container(
+    return SizedBox(
       width: size.width,
       height: size.height * 0.095,
       child: ListView(
-        controller: scrollController,
-        padding: EdgeInsets.only(top: 10),
+        controller: _scrollController,
+        padding: const EdgeInsets.only(top: 10),
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         children: List.generate(
@@ -299,13 +350,14 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                 currentDate.month == today.month &&
                 currentDate.year == today.year;
 
+            // Check if this date is the selected date
+            bool isSelected = currentDate.year == widget.selectedDate.year &&
+                currentDate.month == widget.selectedDate.month &&
+                currentDate.day == widget.selectedDate.day;
+
             return InkWell(
               onTap: (currentDate.day <= today.day)
                   ? () {
-                      setState(() {
-                        _focusDay = currentDate.day;
-                      });
-
                       widget.onChangeFocus(DateTime(currentDate.year,
                           currentDate.month, currentDate.day));
                     }
@@ -326,18 +378,18 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                                 : dark,
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 5,
                     ),
                     Container(
                       width: 27,
                       height: 27,
                       alignment: Alignment.center,
-                      decoration: (_focusDay == currentDate.day)
+                      decoration: isSelected
                           ? BoxDecoration(
                               color: white,
                               border: Border.all(color: primary),
-                              boxShadow: [
+                              boxShadow: const [
                                 BoxShadow(color: grey, blurRadius: 5)
                               ],
                               borderRadius: BorderRadius.circular(25),
@@ -355,13 +407,13 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 7),
+                    const SizedBox(height: 7),
                     if (isToday)
                       Container(
                         width: 5,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: secondary, // Change to your desired color
+                          color: secondary,
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),

@@ -86,7 +86,7 @@ class PopupService {
       {required BuildContext context,
       String? title,
       IconData? titleIcon,
-      bool canBack: false,
+      bool canBack = false,
       Function()? onBack}) {
     return WillPopScope(
       onWillPop: () async {

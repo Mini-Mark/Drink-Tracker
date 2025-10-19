@@ -2,10 +2,7 @@ import 'package:drinktracker/pages/statistics/achievement.dart';
 import 'package:drinktracker/pages/statistics/graph.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class MainStatistics extends StatefulWidget {
   const MainStatistics({super.key});
@@ -17,8 +14,6 @@ class MainStatistics extends StatefulWidget {
 class _MainStatisticsState extends State<MainStatistics> {
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
-
     return SafeArea(
         child: Scrollbar(
       child: SingleChildScrollView(

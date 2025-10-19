@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:drinktracker/data_json/ml_json.dart';
-import 'package:drinktracker/pages/home.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/add_quantity.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/success_add_drinks.dart';
