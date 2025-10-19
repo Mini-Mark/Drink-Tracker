@@ -119,11 +119,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
     final age = args['age'] as int?;
     final gender = args['gender'] as String?;
     final weight = args['weight'] as double?;
-    final height = args['height'] as double?;
     final exerciseFrequency = args['exerciseFrequency'] as String?;
 
     if (age == null || gender == null || weight == null || 
-        height == null || exerciseFrequency == null) {
+        exerciseFrequency == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error: Incomplete profile data'),
@@ -145,7 +144,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
         age: age,
         gender: gender,
         weight: weight,
-        height: height,
         exerciseFrequency: exerciseFrequency,
       );
 
@@ -229,7 +227,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
     final age = args?['age'] as int?;
     final gender = args?['gender'] as String?;
     final weight = args?['weight'] as double?;
-    final height = args?['height'] as double?;
     final exerciseFrequency = args?['exerciseFrequency'] as String?;
 
     return Scaffold(
@@ -367,11 +364,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
                     
                     if (weight != null)
                       _buildInfoRow('Weight', '${weight.toStringAsFixed(1)} kg', Icons.monitor_weight),
-                    
-                    const SizedBox(height: 12),
-                    
-                    if (height != null)
-                      _buildInfoRow('Height', '${height.toStringAsFixed(1)} cm', Icons.height),
                     
                     const SizedBox(height: 12),
                     

@@ -44,67 +44,69 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
     }
   }
 
-  Widget _buildGenderOption({
+  Widget _buildGenderCard({
     required String value,
     required String label,
     required IconData icon,
+    required Color cardColor,
   }) {
     final isSelected = _selectedGender == value;
     
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedGender = value;
-          _errorMessage = null;
-        });
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected ? primary.withValues(alpha: 0.1) : white,
-          border: Border.all(
-            color: isSelected ? primary : grey.withValues(alpha: 0.5),
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isSelected ? primary : grey.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: isSelected ? white : dark.withValues(alpha: 0.6),
-                size: 24,
-              ),
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedGender = value;
+            _errorMessage = null;
+          });
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isSelected ? cardColor.withValues(alpha: 0.15) : white,
+            border: Border.all(
+              color: isSelected ? cardColor : grey.withValues(alpha: 0.3),
+              width: isSelected ? 3 : 1,
             ),
-            
-            const SizedBox(width: 16),
-            
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: title_md,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? primary : dark,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: isSelected ? [
+              BoxShadow(
+                color: cardColor.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ] : [],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: isSelected ? cardColor : grey.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: isSelected ? white : dark.withValues(alpha: 0.5),
+                  size: 50,
                 ),
               ),
-            ),
-            
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: primary,
-                size: 24,
+              
+              const SizedBox(height: 16),
+              
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: title_lg,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? cardColor : dark.withValues(alpha: 0.7),
+                ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -152,7 +154,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
               
               // Subtitle
               Text(
-                'This helps us personalize your water goals',
+                'This helps us calculate accurate water values',
                 style: TextStyle(
                   fontSize: title_md,
                   color: dark.withValues(alpha: 0.6),
@@ -161,27 +163,27 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
               
               const SizedBox(height: 48),
               
-              // Gender Options
-              _buildGenderOption(
-                value: 'male',
-                label: 'Male',
-                icon: Icons.male,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              _buildGenderOption(
-                value: 'female',
-                label: 'Female',
-                icon: Icons.female,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              _buildGenderOption(
-                value: 'other',
-                label: 'Other',
-                icon: Icons.person,
+              // Gender Cards
+              Expanded(
+                child: Row(
+                  children: [
+                    _buildGenderCard(
+                      value: 'male',
+                      label: 'Male',
+                      icon: Icons.male,
+                      cardColor: const Color(0xFF4A90E2),
+                    ),
+                    
+                    const SizedBox(width: 16),
+                    
+                    _buildGenderCard(
+                      value: 'female',
+                      label: 'Female',
+                      icon: Icons.female,
+                      cardColor: const Color(0xFFE91E63),
+                    ),
+                  ],
+                ),
               ),
               
               if (_errorMessage != null) ...[

@@ -344,7 +344,6 @@ class AppState extends ChangeNotifier {
     required int age,
     required String gender,
     required double weight,
-    required double height,
     required String exerciseFrequency,
   }) async {
     try {
@@ -353,7 +352,6 @@ class AppState extends ChangeNotifier {
         age: age,
         gender: gender,
         weight: weight,
-        height: height,
         exerciseFrequency: exerciseFrequency,
       );
 

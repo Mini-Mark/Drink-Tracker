@@ -3,6 +3,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:drinktracker/data_json/ml_json.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/add_quantity.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
+import 'package:drinktracker/pages/popup/manage_drinks/edit_quantity.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/success_add_drinks.dart';
 import 'package:drinktracker/services/drinks_service.dart';
 import 'package:drinktracker/services/popup_service.dart';
@@ -114,6 +115,13 @@ class Popup_ChooseML extends StatelessWidget {
 
           PopupService().clearCallback();
         });
+      },
+      onLongPress: () {
+        Navigator.of(context).pop();
+        PopupService().show(context,
+            padding: EdgeInsets.all(0),
+            dialog: Popup_EditQuantity(
+                drinksID: drinksID, mlAmount: data["amount"]));
       },
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(

@@ -62,7 +62,6 @@ class _ExerciseFrequencyScreenState extends State<ExerciseFrequencyScreen> {
       final age = args?['age'] as int?;
       final gender = args?['gender'] as String?;
       final weight = args?['weight'] as double?;
-      final height = args?['height'] as double?;
       
       Navigator.pushNamed(
         context,
@@ -71,7 +70,6 @@ class _ExerciseFrequencyScreenState extends State<ExerciseFrequencyScreen> {
           'age': age,
           'gender': gender,
           'weight': weight,
-          'height': height,
           'exerciseFrequency': _selectedFrequency,
         },
       );

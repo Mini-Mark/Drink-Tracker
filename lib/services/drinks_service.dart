@@ -44,4 +44,18 @@ class DrinksService {
       },
     );
   }
+
+  /// Update an existing drink
+  void updateDrinks(int id, String name, IconData icon) {
+    final index = drinkLists.indexWhere((element) => element["id"] == id);
+    if (index != -1) {
+      drinkLists[index]["name"] = name;
+      drinkLists[index]["icon"] = icon;
+    }
+  }
+
+  /// Delete a drink by ID
+  void deleteDrinks(int id) {
+    drinkLists.removeWhere((element) => element["id"] == id);
+  }
 }

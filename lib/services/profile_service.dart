@@ -12,7 +12,6 @@ class ProfileService {
     required int age,
     required String gender,
     required double weight,
-    required double height,
     required String exerciseFrequency,
   }) async {
     final dailyRequirement = calculateDailyWaterRequirement(
@@ -26,7 +25,6 @@ class ProfileService {
       age: age,
       gender: gender,
       weight: weight,
-      height: height,
       exerciseFrequency: exerciseFrequency,
       dailyWaterRequirement: dailyRequirement,
       createdAt: DateTime.now(),
@@ -51,7 +49,6 @@ class ProfileService {
       age: profile.age,
       gender: profile.gender,
       weight: profile.weight,
-      height: profile.height,
       exerciseFrequency: profile.exerciseFrequency,
       dailyWaterRequirement: dailyRequirement,
       createdAt: profile.createdAt,

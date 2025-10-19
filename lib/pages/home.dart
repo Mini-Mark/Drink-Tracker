@@ -2,7 +2,6 @@ import 'package:drinktracker/data_json/image_src.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/widgets/animated_wave.dart';
 import 'package:drinktracker/pages/widgets/aquarium_widget.dart';
-import 'package:drinktracker/pages/widgets/ripple_animation.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/font_size.dart';
 import 'package:flutter/material.dart';
@@ -18,26 +17,16 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool _showSplash = false;
-
   @override
   void initState() {
     super.initState();
   }
 
   refreshHomePage(second) async {
-    // Trigger splash animation
-    setState(() {
-      _showSplash = true;
-    });
-
-    Future.delayed(Duration(seconds: second), () {
-      if (mounted) {
-        setState(() {
-          _showSplash = false;
-        });
-      }
-    });
+    // Refresh without animation
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -94,17 +83,6 @@ class _HomeState extends State<Home> {
               ),
               // Add aquarium widget
               const AquariumWidget(),
-              // Splash animation overlay
-              if (_showSplash)
-                SplashAnimationOverlay(
-                  onComplete: () {
-                    if (mounted) {
-                      setState(() {
-                        _showSplash = false;
-                      });
-                    }
-                  },
-                ),
               SafeArea(
                 child: Column(children: [
                   CalendarWidget(

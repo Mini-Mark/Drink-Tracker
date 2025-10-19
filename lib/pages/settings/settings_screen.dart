@@ -22,7 +22,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Controllers for editable fields
   late TextEditingController _ageController;
   late TextEditingController _weightController;
-  late TextEditingController _heightController;
   String _selectedGender = 'male';
   String _selectedExerciseFrequency = 'sedentary';
 
@@ -31,14 +30,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _ageController = TextEditingController();
     _weightController = TextEditingController();
-    _heightController = TextEditingController();
   }
 
   @override
   void dispose() {
     _ageController.dispose();
     _weightController.dispose();
-    _heightController.dispose();
     super.dispose();
   }
 
@@ -46,7 +43,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_ageController.text.isEmpty) {
       _ageController.text = profile.age.toString();
       _weightController.text = profile.weight.toStringAsFixed(1);
-      _heightController.text = profile.height.toStringAsFixed(1);
       _selectedGender = profile.gender;
       _selectedExerciseFrequency = profile.exerciseFrequency;
     }
@@ -61,7 +57,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (profile != null) {
           _ageController.text = profile.age.toString();
           _weightController.text = profile.weight.toStringAsFixed(1);
-          _heightController.text = profile.height.toStringAsFixed(1);
           _selectedGender = profile.gender;
           _selectedExerciseFrequency = profile.exerciseFrequency;
         }
@@ -91,7 +86,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         age: int.parse(_ageController.text),
         gender: _selectedGender,
         weight: double.parse(_weightController.text),
-        height: double.parse(_heightController.text),
         exerciseFrequency: _selectedExerciseFrequency,
         dailyWaterRequirement: 0, // Will be recalculated
         createdAt: currentProfile.createdAt,
@@ -551,7 +545,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     items: const [
                       DropdownMenuItem(value: 'male', child: Text('Male')),
                       DropdownMenuItem(value: 'female', child: Text('Female')),
-                      DropdownMenuItem(value: 'other', child: Text('Other')),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -596,36 +589,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'Weight',
                     '${profile.weight.toStringAsFixed(1)} kg',
                     Icons.monitor_weight,
-                  ),
-
-                const SizedBox(height: 12),
-
-                // Height
-                if (_isEditing)
-                  _buildEditableTextField(
-                    label: 'Height',
-                    controller: _heightController,
-                    icon: Icons.height,
-                    suffix: 'cm',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your height';
-                      }
-                      final height = double.tryParse(value);
-                      if (height == null) {
-                        return 'Please enter a valid number';
-                      }
-                      if (height < 50 || height > 250) {
-                        return 'Height must be between 50 and 250 cm';
-                      }
-                      return null;
-                    },
-                  )
-                else
-                  _buildInfoCard(
-                    'Height',
-                    '${profile.height.toStringAsFixed(1)} cm',
-                    Icons.height,
                   ),
 
                 const SizedBox(height: 12),

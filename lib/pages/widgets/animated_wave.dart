@@ -30,36 +30,35 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
   @override
   void initState() {
     super.initState();
-    controller =
-        AnimationController(duration: const Duration(milliseconds: 1500), vsync: this);
-    animation =
-        Tween<double>(begin: 0, end: widget.heightPercent).animate(
-          CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-        )..addListener(() async {
-            Function callbackFunc = await widget.callback;
-            callbackFunc(1);
+    controller = AnimationController(
+        duration: const Duration(milliseconds: 1500), vsync: this);
+    animation = Tween<double>(begin: 0, end: widget.heightPercent).animate(
+      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+    )..addListener(() async {
+        Function callbackFunc = await widget.callback;
+        callbackFunc(1);
 
-            if (widget.heightPercent != heightAnimation) {
-              if (widget.heightPercent < heightAnimation) {
-                setState(() {
-                  heightAnimation -= 1;
-                  if (widget.heightPercent > heightAnimation) {
-                    heightAnimation = widget.heightPercent;
-                  }
-                });
-              } else {
-                setState(() {
-                  heightAnimation += 1;
-                  if (widget.heightPercent < heightAnimation) {
-                    heightAnimation = widget.heightPercent;
-                  }
-                });
+        if (widget.heightPercent != heightAnimation) {
+          if (widget.heightPercent < heightAnimation) {
+            setState(() {
+              heightAnimation -= 1;
+              if (widget.heightPercent > heightAnimation) {
+                heightAnimation = widget.heightPercent;
               }
-            } else {
-              controller.stop();
-            }
-          });
-    
+            });
+          } else {
+            setState(() {
+              heightAnimation += 1;
+              if (widget.heightPercent < heightAnimation) {
+                heightAnimation = widget.heightPercent;
+              }
+            });
+          }
+        } else {
+          controller.stop();
+        }
+      });
+
     // Pulse animation for when drinks are added
     pulseController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -68,7 +67,7 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
     pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: pulseController, curve: Curves.easeOut),
     );
-    
+
     controller.forward();
   }
 
@@ -76,7 +75,7 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
   void didUpdateWidget(covariant AnimatedWaveAnimation oldWidget) {
     if (widget.heightPercent != heightAnimation) {
       controller.animateTo(widget.heightPercent);
-      
+
       // Trigger pulse animation when height increases
       if (widget.heightPercent > oldWidget.heightPercent) {
         _triggerPulse();
@@ -115,10 +114,10 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
         // Add pulse effect to wave amplitude when drink is added
         final amplitudeBoost = isPulsing ? pulseAnimation.value * 15.0 : 0.0;
         final waveAmplitude = 25.0 + amplitudeBoost;
-        
+
         // Add slight color intensity boost during pulse
         final colorBoost = isPulsing ? (pulseAnimation.value * 30).toInt() : 0;
-        
+
         return WaveWidget(
           config: CustomConfig(
             colors: [

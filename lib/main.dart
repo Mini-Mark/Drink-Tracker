@@ -3,7 +3,6 @@ import 'package:drinktracker/pages/onboarding/get_started_screen.dart';
 import 'package:drinktracker/pages/onboarding/age_input_screen.dart';
 import 'package:drinktracker/pages/onboarding/gender_selection_screen.dart';
 import 'package:drinktracker/pages/onboarding/weight_input_screen.dart';
-import 'package:drinktracker/pages/onboarding/height_input_screen.dart';
 import 'package:drinktracker/pages/onboarding/exercise_frequency_screen.dart';
 import 'package:drinktracker/pages/onboarding/summary_screen.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +85,6 @@ class MyApp extends StatelessWidget {
           '/onboarding/age': (context) => const AgeInputScreen(),
           '/onboarding/gender': (context) => const GenderSelectionScreen(),
           '/onboarding/weight': (context) => const WeightInputScreen(),
-          '/onboarding/height': (context) => const HeightInputScreen(),
           '/onboarding/exercise': (context) => const ExerciseFrequencyScreen(),
           '/onboarding/summary': (context) => const SummaryScreen(),
         },

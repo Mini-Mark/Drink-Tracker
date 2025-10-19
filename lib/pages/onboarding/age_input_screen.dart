@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
 
@@ -12,55 +11,28 @@ class AgeInputScreen extends StatefulWidget {
 }
 
 class _AgeInputScreenState extends State<AgeInputScreen> {
-  final TextEditingController _ageController = TextEditingController();
-  String? _errorMessage;
+  late FixedExtentScrollController _scrollController;
+  int _selectedAge = 25;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController =
+        FixedExtentScrollController(initialItem: _selectedAge - 1);
+  }
 
   @override
   void dispose() {
-    _ageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  bool _validateAge() {
-    final ageText = _ageController.text.trim();
-    
-    if (ageText.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter your age';
-      });
-      return false;
-    }
-
-    final age = int.tryParse(ageText);
-    if (age == null) {
-      setState(() {
-        _errorMessage = 'Please enter a valid number';
-      });
-      return false;
-    }
-
-    if (age < 1 || age > 120) {
-      setState(() {
-        _errorMessage = 'Age must be between 1 and 120';
-      });
-      return false;
-    }
-
-    setState(() {
-      _errorMessage = null;
-    });
-    return true;
-  }
-
   void _handleNext() {
-    if (_validateAge()) {
-      final age = int.parse(_ageController.text.trim());
-      Navigator.pushNamed(
-        context,
-        '/onboarding/gender',
-        arguments: {'age': age},
-      );
-    }
+    Navigator.pushNamed(
+      context,
+      '/onboarding/gender',
+      arguments: {'age': _selectedAge},
+    );
   }
 
   @override
@@ -88,9 +60,9 @@ class _AgeInputScreenState extends State<AgeInputScreen> {
                 valueColor: const AlwaysStoppedAnimation<Color>(primary),
                 minHeight: 4,
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Title
               const Text(
                 'How old are you?',
@@ -100,9 +72,9 @@ class _AgeInputScreenState extends State<AgeInputScreen> {
                   color: dark,
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // Subtitle
               Text(
                 'This helps us calculate your daily water needs',
@@ -111,63 +83,86 @@ class _AgeInputScreenState extends State<AgeInputScreen> {
                   color: dark.withValues(alpha: 0.6),
                 ),
               ),
-              
-              const SizedBox(height: 48),
-              
-              // Age Input Field
-              TextField(
-                controller: _ageController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(3),
-                ],
-                style: const TextStyle(
-                  fontSize: title_lg,
-                  fontWeight: FontWeight.bold,
-                  color: dark,
+
+              const SizedBox(height: 24),
+
+              // Vertical Number Picker
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Selection indicator
+                    Container(
+                      height: 80,
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: primary, width: 2),
+                      ),
+                    ),
+
+                    // Number picker
+                    ListWheelScrollView.useDelegate(
+                      controller: _scrollController,
+                      itemExtent: 80,
+                      perspective: 0.003,
+                      diameterRatio: 1.5,
+                      physics: const FixedExtentScrollPhysics(),
+                      onSelectedItemChanged: (index) {
+                        setState(() {
+                          _selectedAge = index + 1;
+                        });
+                      },
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        childCount: 120,
+                        builder: (context, index) {
+                          final age = index + 1;
+                          final isSelected = age == _selectedAge;
+
+                          return Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  age.toString(),
+                                  style: TextStyle(
+                                    fontSize: isSelected ? 48 : 32,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? primary
+                                        : dark.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'years',
+                                  style: TextStyle(
+                                    fontSize: isSelected ? title_lg : title_md,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? primary.withValues(alpha: 0.8)
+                                        : dark.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Enter your age',
-                  hintStyle: TextStyle(
-                    fontSize: title_lg,
-                    color: dark.withValues(alpha: 0.3),
-                  ),
-                  suffixText: 'years',
-                  suffixStyle: TextStyle(
-                    fontSize: title_md,
-                    color: dark.withValues(alpha: 0.6),
-                  ),
-                  errorText: _errorMessage,
-                  errorStyle: const TextStyle(
-                    fontSize: text_md,
-                    color: danger,
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: grey.withValues(alpha: 0.5)),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: primary, width: 2),
-                  ),
-                  errorBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: danger, width: 2),
-                  ),
-                  focusedErrorBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: danger, width: 2),
-                  ),
-                ),
-                onChanged: (_) {
-                  if (_errorMessage != null) {
-                    setState(() {
-                      _errorMessage = null;
-                    });
-                  }
-                },
-                onSubmitted: (_) => _handleNext(),
               ),
-              
+
               const Spacer(),
-              
+
               // Next Button
               SizedBox(
                 width: double.infinity,
@@ -191,7 +186,7 @@ class _AgeInputScreenState extends State<AgeInputScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
             ],
           ),
