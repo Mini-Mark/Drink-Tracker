@@ -195,6 +195,12 @@ class AppState extends ChangeNotifier {
     return _waterTrackingService.getTotalConsumptionForDate(date);
   }
 
+  /// Get drink entries for the selected date
+  List<DrinkEntry> getDrinkEntriesForSelectedDate() {
+    final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+    return _drinkEntries.where((entry) => entry.date == dateStr).toList();
+  }
+
   /// Delete a drink entry by ID
   /// Updates state and refreshes achievements
   Future<void> deleteDrinkEntry(String entryId) async {

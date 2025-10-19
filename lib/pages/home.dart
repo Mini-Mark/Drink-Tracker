@@ -4,6 +4,7 @@ import 'package:drinktracker/pages/widgets/animated_wave.dart';
 import 'package:drinktracker/pages/widgets/aquarium_widget.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/font_size.dart';
+import 'package:drinktracker/utils/color_mixer.dart';
 import 'package:flutter/material.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:provider/provider.dart';
@@ -40,6 +41,10 @@ class _HomeState extends State<Home> {
         final currentML = appState.getTotalConsumptionForSelectedDate();
         final dailyRequirement =
             appState.userProfile?.dailyWaterRequirement ?? 2000;
+
+        // Get drink entries for selected date and calculate mixed color
+        final drinkEntries = appState.getDrinkEntriesForSelectedDate();
+        final waveColor = ColorMixer.mixDrinkColors(drinkEntries);
 
         // Calculate image step based on consumption (with safety checks)
         final waterSteps = imageSrc().water_step;
@@ -79,6 +84,7 @@ class _HomeState extends State<Home> {
                       ? (currentML / dailyRequirement * 100).clamp(0.0, 100.0)
                       : 0.0,
                   callback: refreshHomePage,
+                  color: waveColor,
                 ),
               ),
               // Add aquarium widget
@@ -122,8 +128,9 @@ class _HomeState extends State<Home> {
                         const TextSpan(
                           text: "Goal is ",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xCCC8C8C8)),
+                            fontWeight: FontWeight.bold,
+                            color: secondary,
+                          ),
                         ),
                         TextSpan(
                           text: "$dailyRequirement ML",
