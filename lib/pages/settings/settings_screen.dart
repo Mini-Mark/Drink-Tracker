@@ -5,6 +5,7 @@ import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
 import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/models/user_profile.dart';
+import '../widgets/animated_wave.dart';
 
 /// Settings screen displaying current profile information and daily water requirement
 class SettingsScreen extends StatefulWidget {
@@ -53,7 +54,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isEditing = !_isEditing;
       if (!_isEditing) {
         // Reset to original values if canceling
-        final profile = Provider.of<AppState>(context, listen: false).userProfile;
+        final profile =
+            Provider.of<AppState>(context, listen: false).userProfile;
         if (profile != null) {
           _ageController.text = profile.age.toString();
           _weightController.text = profile.weight.toStringAsFixed(1);
@@ -274,7 +276,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   inputFormatters: [
                     if (keyboardType == TextInputType.number)
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,1}')),
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,1}')),
                   ],
                 ),
               ],
@@ -407,303 +410,285 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           return Form(
             key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                // Daily Water Requirement Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [primary, secondary],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+            child: Column(
+              children: [
+                // Scrollable Profile Information Section
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Profile Information',
+                                style: TextStyle(
+                                  fontSize: title_lg,
+                                  fontWeight: FontWeight.bold,
+                                  color: dark,
+                                ),
+                              ),
+                              if (_isEditing)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    'Editing Mode',
+                                    style: TextStyle(
+                                      fontSize: text_sm,
+                                      color: primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Age
+                          if (_isEditing)
+                            _buildEditableTextField(
+                              label: 'Age',
+                              controller: _ageController,
+                              icon: Icons.cake,
+                              suffix: 'years',
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your age';
+                                }
+                                final age = int.tryParse(value);
+                                if (age == null) {
+                                  return 'Please enter a valid number';
+                                }
+                                if (age < 1 || age > 120) {
+                                  return 'Age must be between 1 and 120';
+                                }
+                                return null;
+                              },
+                            )
+                          else
+                            _buildInfoCard(
+                              'Age',
+                              '${profile.age} years',
+                              Icons.cake,
+                            ),
+                          const SizedBox(height: 12),
+
+                          // Gender
+                          if (_isEditing)
+                            _buildEditableDropdown(
+                              label: 'Gender',
+                              value: _selectedGender,
+                              icon: Icons.person,
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'male', child: Text('Male')),
+                                DropdownMenuItem(
+                                    value: 'female', child: Text('Female')),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedGender = value;
+                                  });
+                                }
+                              },
+                            )
+                          else
+                            _buildInfoCard(
+                              'Gender',
+                              _getGenderLabel(profile.gender),
+                              Icons.person,
+                            ),
+                          const SizedBox(height: 12),
+
+                          // Weight
+                          if (_isEditing)
+                            _buildEditableTextField(
+                              label: 'Weight',
+                              controller: _weightController,
+                              icon: Icons.monitor_weight,
+                              suffix: 'kg',
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your weight';
+                                }
+                                final weight = double.tryParse(value);
+                                if (weight == null) {
+                                  return 'Please enter a valid number';
+                                }
+                                if (weight < 20 || weight > 300) {
+                                  return 'Weight must be between 20 and 300 kg';
+                                }
+                                return null;
+                              },
+                            )
+                          else
+                            _buildInfoCard(
+                              'Weight',
+                              '${profile.weight.toStringAsFixed(1)} kg',
+                              Icons.monitor_weight,
+                            ),
+                          const SizedBox(height: 12),
+
+                          // Exercise Frequency
+                          if (_isEditing)
+                            _buildEditableDropdown(
+                              label: 'Activity Level',
+                              value: _selectedExerciseFrequency,
+                              icon: Icons.fitness_center,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'sedentary',
+                                  child: Text('Sedentary'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'light',
+                                  child: Text('Light'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'moderate',
+                                  child: Text('Moderate'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'active',
+                                  child: Text('Active'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'very_active',
+                                  child: Text('Very Active'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedExerciseFrequency = value;
+                                  });
+                                }
+                              },
+                            )
+                          else
+                            _buildInfoCard(
+                              'Activity Level',
+                              _getExerciseLabel(profile.exerciseFrequency),
+                              Icons.fitness_center,
+                            ),
+
+                          if (_isEditing) ...[
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: _isSaving ? null : _saveChanges,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primary,
+                                  foregroundColor: white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 4,
+                                ),
+                                child: _isSaving
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Save Changes',
+                                        style: TextStyle(
+                                          fontSize: title_md,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primary.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.water_drop,
-                        color: white,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Daily Water Goal',
-                        style: TextStyle(
-                          fontSize: title_md,
-                          color: white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${profile.dailyWaterRequirement} ml',
-                        style: const TextStyle(
-                          fontSize: title_xl,
-                          fontWeight: FontWeight.bold,
-                          color: white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${(profile.dailyWaterRequirement / 1000).toStringAsFixed(1)} liters per day',
-                        style: TextStyle(
-                          fontSize: text_md,
-                          color: white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
 
-                const SizedBox(height: 32),
-
-                // Profile Information Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Profile Information',
-                      style: TextStyle(
-                        fontSize: title_lg,
-                        fontWeight: FontWeight.bold,
-                        color: dark,
+                // Daily Water Requirement with Wave Animation - Fixed at bottom, full width
+                SizedBox(
+                  width: double.infinity,
+                  height: 240,
+                  child: Stack(
+                    children: [
+                      // Wave animation at the bottom
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 220,
+                        child: AnimatedWaveAnimation(
+                          heightPercent: 100,
+                          callback: () {},
+                        ),
                       ),
-                    ),
-                    if (_isEditing)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Editing Mode',
-                          style: TextStyle(
-                            fontSize: text_sm,
-                            color: primary,
-                            fontWeight: FontWeight.w600,
+
+                      // Text content at the top
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 24),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.water_drop,
+                                color: dark,
+                                size: 48,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Daily Water Goal',
+                                style: TextStyle(
+                                  fontSize: title_md,
+                                  color: dark,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${profile.dailyWaterRequirement} ml',
+                                style: const TextStyle(
+                                  fontSize: title_xl,
+                                  fontWeight: FontWeight.bold,
+                                  color: dark,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${(profile.dailyWaterRequirement / 1000).toStringAsFixed(1)} liters per day',
+                                style: TextStyle(
+                                  fontSize: text_md,
+                                  color: dark.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Age
-                if (_isEditing)
-                  _buildEditableTextField(
-                    label: 'Age',
-                    controller: _ageController,
-                    icon: Icons.cake,
-                    suffix: 'years',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your age';
-                      }
-                      final age = int.tryParse(value);
-                      if (age == null) {
-                        return 'Please enter a valid number';
-                      }
-                      if (age < 1 || age > 120) {
-                        return 'Age must be between 1 and 120';
-                      }
-                      return null;
-                    },
-                  )
-                else
-                  _buildInfoCard(
-                    'Age',
-                    '${profile.age} years',
-                    Icons.cake,
-                  ),
-
-                const SizedBox(height: 12),
-
-                // Gender
-                if (_isEditing)
-                  _buildEditableDropdown(
-                    label: 'Gender',
-                    value: _selectedGender,
-                    icon: Icons.person,
-                    items: const [
-                      DropdownMenuItem(value: 'male', child: Text('Male')),
-                      DropdownMenuItem(value: 'female', child: Text('Female')),
                     ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      }
-                    },
-                  )
-                else
-                  _buildInfoCard(
-                    'Gender',
-                    _getGenderLabel(profile.gender),
-                    Icons.person,
-                  ),
-
-                const SizedBox(height: 12),
-
-                // Weight
-                if (_isEditing)
-                  _buildEditableTextField(
-                    label: 'Weight',
-                    controller: _weightController,
-                    icon: Icons.monitor_weight,
-                    suffix: 'kg',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your weight';
-                      }
-                      final weight = double.tryParse(value);
-                      if (weight == null) {
-                        return 'Please enter a valid number';
-                      }
-                      if (weight < 20 || weight > 300) {
-                        return 'Weight must be between 20 and 300 kg';
-                      }
-                      return null;
-                    },
-                  )
-                else
-                  _buildInfoCard(
-                    'Weight',
-                    '${profile.weight.toStringAsFixed(1)} kg',
-                    Icons.monitor_weight,
-                  ),
-
-                const SizedBox(height: 12),
-
-                // Exercise Frequency
-                if (_isEditing)
-                  _buildEditableDropdown(
-                    label: 'Activity Level',
-                    value: _selectedExerciseFrequency,
-                    icon: Icons.fitness_center,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'sedentary',
-                        child: Text('Sedentary'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'light',
-                        child: Text('Light'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'moderate',
-                        child: Text('Moderate'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'active',
-                        child: Text('Active'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'very_active',
-                        child: Text('Very Active'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedExerciseFrequency = value;
-                        });
-                      }
-                    },
-                  )
-                else
-                  _buildInfoCard(
-                    'Activity Level',
-                    _getExerciseLabel(profile.exerciseFrequency),
-                    Icons.fitness_center,
-                  ),
-
-                if (_isEditing) ...[
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primary,
-                        foregroundColor: white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 4,
-                      ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Save Changes',
-                              style: TextStyle(
-                                fontSize: title_md,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 32),
-
-                // Account Information Section
-                const Text(
-                  'Account Information',
-                  style: TextStyle(
-                    fontSize: title_lg,
-                    fontWeight: FontWeight.bold,
-                    color: dark,
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Created Date
-                _buildInfoCard(
-                  'Member Since',
-                  '${profile.createdAt.day}/${profile.createdAt.month}/${profile.createdAt.year}',
-                  Icons.calendar_today,
-                ),
-
-                const SizedBox(height: 12),
-
-                // Last Updated
-                _buildInfoCard(
-                  'Last Updated',
-                  '${profile.updatedAt.day}/${profile.updatedAt.month}/${profile.updatedAt.year}',
-                  Icons.update,
-                ),
-
-                const SizedBox(height: 24),
-                ],
-              ),
+              ],
             ),
           );
         },

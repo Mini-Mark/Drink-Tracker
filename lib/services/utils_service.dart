@@ -6,4 +6,9 @@ class UtilsService {
     var colorString = hex.replaceFirst("#", "0xFF");
     return Color(int.parse(colorString));
   }
+
+  /// Convert Color object to hex string
+  String colorToHex(Color color) {
+    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+  }
 }

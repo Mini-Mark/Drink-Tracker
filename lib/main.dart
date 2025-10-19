@@ -16,6 +16,7 @@ import 'package:drinktracker/services/achievement_service.dart';
 import 'package:drinktracker/services/coin_service.dart';
 import 'package:drinktracker/services/shop_service.dart';
 import 'package:drinktracker/services/aquarium_service.dart';
+import 'package:drinktracker/services/drinks_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,10 @@ void main() async {
     // Initialize repository
     final repository = LocalStorageRepository();
     await repository.initialize();
+
+    // Initialize drinks service
+    final drinksService = DrinksService();
+    await drinksService.initialize();
 
     // Initialize services
     final profileService = ProfileService(repository);

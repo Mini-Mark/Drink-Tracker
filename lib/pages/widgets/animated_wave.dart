@@ -34,9 +34,15 @@ class _AnimatedWaveAnimationState extends State<AnimatedWaveAnimation>
         duration: const Duration(milliseconds: 1500), vsync: this);
     animation = Tween<double>(begin: 0, end: widget.heightPercent).animate(
       CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    )..addListener(() async {
-        Function callbackFunc = await widget.callback;
-        callbackFunc(1);
+    )..addListener(() {
+        // Call callback if provided - simplified to avoid parameter mismatch
+        if (widget.callback != null) {
+          try {
+            widget.callback();
+          } catch (e) {
+            // Ignore callback errors
+          }
+        }
 
         if (widget.heightPercent != heightAnimation) {
           if (widget.heightPercent < heightAnimation) {

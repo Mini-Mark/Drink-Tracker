@@ -17,7 +17,8 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
   List<Achievement> _getSortedAchievements(List<Achievement> achievements) {
     List<Achievement> sortedList = List.from(achievements);
     // Sort: completed first (descending), then incomplete
-    sortedList.sort((a, b) => (b.isCompleted ? 1 : 0).compareTo(a.isCompleted ? 1 : 0));
+    sortedList.sort(
+        (a, b) => (b.isCompleted ? 1 : 0).compareTo(a.isCompleted ? 1 : 0));
     return sortedList;
   }
 
@@ -25,8 +26,9 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final sortedAchievements = _getSortedAchievements(appState.achievements);
-        
+        final sortedAchievements =
+            _getSortedAchievements(appState.achievements);
+
         return Container(
           alignment: Alignment.centerLeft,
           child: Column(
@@ -56,7 +58,7 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
   }
 
   Widget _achievementCard(BuildContext context, Achievement achievement) {
-    final progressPercentage = achievement.target > 0 
+    final progressPercentage = achievement.target > 0
         ? (achievement.progress / achievement.target * 100).clamp(0, 100)
         : 0.0;
 
@@ -74,7 +76,9 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
                 Icon(
                   Icons.emoji_events,
                   size: 40,
-                  color: achievement.isCompleted ? dark : dark.withValues(alpha: 0.5),
+                  color: achievement.isCompleted
+                      ? dark
+                      : dark.withValues(alpha: 0.5),
                 ),
                 if (achievement.isCompleted)
                   Positioned(
@@ -113,10 +117,12 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.monetization_on,
                       size: 16,
-                      color: Color(0xFFFFD700),
+                      color: achievement.isCompleted
+                          ? dark
+                          : Color.fromARGB(255, 255, 170, 0),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -179,7 +185,8 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
                     child: LinearProgressIndicator(
                       value: progressPercentage / 100,
                       backgroundColor: white.withValues(alpha: 0.3),
-                      valueColor: const AlwaysStoppedAnimation<Color>(secondary),
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(secondary),
                       minHeight: 8,
                     ),
                   ),

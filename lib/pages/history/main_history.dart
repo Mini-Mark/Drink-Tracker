@@ -1,5 +1,6 @@
 import 'package:drinktracker/data_json/drinks_json.dart';
 import 'package:drinktracker/providers/app_state.dart';
+import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
 import 'package:flutter/material.dart';
@@ -232,10 +233,15 @@ class MainHistory extends StatelessWidget {
           leading: Icon(
             drinkData["icon"],
             size: 40,
+            color: drinkData["color"] != null
+                ? UtilsService().hexToColor(drinkData["color"])
+                : dark,
           ),
           tileColor: grey,
           textColor: dark,
-          iconColor: dark,
+          iconColor: drinkData["color"] != null
+              ? UtilsService().hexToColor(drinkData["color"])
+              : dark,
           title: Text(
             drinkData['name'],
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: title_md),

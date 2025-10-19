@@ -5,6 +5,7 @@ import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/widgets/textfield.dart';
 import 'package:drinktracker/services/drinks_service.dart';
 import 'package:drinktracker/services/popup_service.dart';
+import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/material.dart';
 
@@ -18,9 +19,36 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
   FocusNode _focusNode = FocusNode();
 
   int choosePosition = 0;
+  Color? selectedColor;
 
-  addDrinks(context) {
-    DrinksService().addDrinks(_controller.text, drinksIconList[choosePosition]);
+  // Color palette options
+  final List<Color> colorPalette = [
+    const Color(0xFF76B1D7), // primary
+    const Color(0xFF366C8E), // secondary
+    const Color(0xFF3B7DA8), // light_secondary
+    const Color(0xFFFFBF5E), // warning
+    const Color(0xFF00FF85), // success
+    const Color(0xFFFF7070), // danger
+    const Color(0xFFFFC700), // edit
+    const Color(0xFF9C27B0), // purple
+    const Color(0xFFE91E63), // pink
+    const Color(0xFFF44336), // red
+    const Color(0xFFFF9800), // orange
+    const Color(0xFF4CAF50), // green
+    const Color(0xFF2196F3), // blue
+    const Color(0xFF00BCD4), // cyan
+    const Color(0xFF795548), // brown
+    const Color(0xFF607D8B), // blue grey
+  ];
+
+  addDrinks(context) async {
+    String? colorHex;
+    if (selectedColor != null) {
+      colorHex = UtilsService().colorToHex(selectedColor!);
+    }
+    await DrinksService().addDrinks(
+        _controller.text, drinksIconList[choosePosition],
+        color: colorHex);
 
     back(context);
   }
@@ -65,6 +93,55 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
               onChange: (value) {
                 setState(() {});
               })),
+      SizedBox(
+        height: 20,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 25, right: 25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Color",
+              style: TextStyle(
+                  fontSize: 14, color: dark, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: List.generate(
+                colorPalette.length,
+                (index) => InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedColor = colorPalette[index];
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colorPalette[index],
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selectedColor == colorPalette[index]
+                            ? dark
+                            : Colors.transparent,
+                        width: 3,
+                      ),
+                    ),
+                    child: selectedColor == colorPalette[index]
+                        ? const Icon(Icons.check, color: white, size: 20)
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
       SizedBox(
         height: 20,
       ),

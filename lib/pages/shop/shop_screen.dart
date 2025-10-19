@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import '../../providers/app_state.dart';
 import '../../models/fish.dart';
 import '../../models/decoration.dart' as models;
@@ -62,15 +60,6 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final iconList = <IconData>[
-      Icons.home_rounded,
-      Icons.bar_chart_sharp,
-      Icons.history,
-      Icons.settings,
-      Icons.store,
-    ];
-    final labelList = ["Home", "Statistics", "History", "Settings", "Shop"];
-
     return Consumer<AppState>(
       builder: (context, appState, child) {
         final coinBalance = appState.getCoinBalance();
@@ -81,6 +70,15 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
           appBar: AppBar(
             backgroundColor: primary,
             elevation: 0,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.backpack_outlined,
+                color: white,
+                size: 28,
+              ),
+              onPressed: () => _showInventoryDialog(appState),
+              tooltip: 'My Items',
+            ),
             title: const Text(
               'Shop',
               style: TextStyle(
@@ -90,92 +88,90 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
               ),
             ),
             centerTitle: true,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(100),
-              child: Column(
-                children: [
-                  // Coin balance display with animation
-                  AnimatedBuilder(
-                    animation: _coinAnimationController,
-                    builder: (context, child) {
-                      final scale =
-                          1.0 + (_coinAnimationController.value * 0.15);
-                      final shake = _coinShakeAnimation.value;
-                      return Transform.translate(
-                        offset: Offset(shake, 0),
-                        child: Transform.scale(
-                          scale: scale,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: white,
-                              borderRadius: BorderRadius.circular(15),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                      alpha: 0.1 +
-                                          (_coinAnimationController.value *
-                                              0.1)),
-                                  blurRadius:
-                                      8 + (_coinAnimationController.value * 4),
-                                  offset: const Offset(0, 2),
+            actions: [
+              // Coin balance display with animation
+              Center(
+                child: AnimatedBuilder(
+                  animation: _coinAnimationController,
+                  builder: (context, child) {
+                    final scale =
+                        1.0 + (_coinAnimationController.value * 0.15);
+                    final shake = _coinShakeAnimation.value;
+                    return Transform.translate(
+                      offset: Offset(shake, 0),
+                      child: Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                    alpha: 0.1 +
+                                        (_coinAnimationController.value *
+                                            0.1)),
+                                blurRadius:
+                                    6 + (_coinAnimationController.value * 3),
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TweenAnimationBuilder<double>(
+                                duration: const Duration(milliseconds: 300),
+                                tween: Tween(begin: 1.0, end: 1.0),
+                                builder: (context, value, child) {
+                                  return Transform.rotate(
+                                    angle:
+                                        _coinAnimationController.value * 0.2,
+                                    child: child,
+                                  );
+                                },
+                                child: const Icon(
+                                  Icons.monetization_on,
+                                  color: warning,
+                                  size: 22,
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                TweenAnimationBuilder<double>(
-                                  duration: const Duration(milliseconds: 300),
-                                  tween: Tween(begin: 1.0, end: 1.0),
-                                  builder: (context, value, child) {
-                                    return Transform.rotate(
-                                      angle:
-                                          _coinAnimationController.value * 0.2,
-                                      child: child,
-                                    );
-                                  },
-                                  child: const Icon(
-                                    Icons.monetization_on,
-                                    color: warning,
-                                    size: 28,
-                                  ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '$coinBalance',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: dark,
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  '$coinBalance Coins',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: dark,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  // Tab bar
-                  TabBar(
-                    controller: _tabController,
-                    indicatorColor: white,
-                    indicatorWeight: 3,
-                    labelColor: white,
-                    unselectedLabelColor: white.withValues(alpha: 0.6),
-                    labelStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    tabs: const [
-                      Tab(text: 'Fish'),
-                      Tab(text: 'Decorations'),
-                    ],
-                  ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: white,
+                indicatorWeight: 3,
+                labelColor: white,
+                unselectedLabelColor: white.withValues(alpha: 0.6),
+                labelStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                tabs: const [
+                  Tab(text: 'Fish'),
+                  Tab(text: 'Decorations'),
                 ],
               ),
             ),
@@ -675,5 +671,268 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  void _showInventoryDialog(AppState appState) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 600),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.backpack,
+                        color: white,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'My Items',
+                        style: TextStyle(
+                          color: white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                // Content
+                Flexible(
+                  child: FutureBuilder(
+                    future: _getInventoryData(appState),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40),
+                            child: CircularProgressIndicator(color: primary),
+                          ),
+                        );
+                      }
+
+                      final data = snapshot.data;
+                      final ownedFish = (data?['fish'] as List<Fish>?) ?? [];
+                      final ownedDecorations =
+                          (data?['decorations'] as List<models.Decoration>?) ??
+                              [];
+
+                      if (ownedFish.isEmpty && ownedDecorations.isEmpty) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 64,
+                                  color: grey,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'No items yet',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: grey,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Purchase fish and decorations\nto fill your inventory!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (ownedFish.isNotEmpty) ...[
+                              const Text(
+                                'Fish',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: dark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: ownedFish.map((fish) {
+                                  return Container(
+                                    width: 100,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: primary.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          width: 50,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            color: primary.withValues(alpha: 0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.set_meal,
+                                            size: 30,
+                                            color: primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          fish.name,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: dark,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                            if (ownedDecorations.isNotEmpty) ...[
+                              const Text(
+                                'Decorations',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: dark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: ownedDecorations.map((decoration) {
+                                  return Container(
+                                    width: 100,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: success.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: success.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          width: 50,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            color: success.withValues(alpha: 0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.grass,
+                                            size: 30,
+                                            color: success,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          decoration.name,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: dark,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> _getInventoryData(AppState appState) async {
+    final inventory = appState.inventory;
+    if (inventory == null) {
+      return {
+        'fish': <Fish>[],
+        'decorations': <models.Decoration>[],
+      };
+    }
+
+    final allFish = appState.getFishCatalog();
+    final allDecorations = appState.getDecorationCatalog();
+
+    final ownedFish = allFish
+        .where((fish) => inventory.purchasedFishIds.contains(fish.id))
+        .toList();
+    final ownedDecorations = allDecorations
+        .where((decoration) =>
+            inventory.purchasedDecorationIds.contains(decoration.id))
+        .toList();
+
+    return {
+      'fish': ownedFish,
+      'decorations': ownedDecorations,
+    };
   }
 }

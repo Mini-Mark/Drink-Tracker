@@ -5,6 +5,7 @@ import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/widgets/textfield.dart';
 import 'package:drinktracker/services/drinks_service.dart';
 import 'package:drinktracker/services/popup_service.dart';
+import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,27 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
   final FocusNode _focusNode = FocusNode();
 
   int choosePosition = 0;
+  Color? selectedColor;
+
+  // Color palette options
+  final List<Color> colorPalette = [
+    const Color(0xFF76B1D7), // primary
+    const Color(0xFF366C8E), // secondary
+    const Color(0xFF3B7DA8), // light_secondary
+    const Color(0xFFFFBF5E), // warning
+    const Color(0xFF00FF85), // success
+    const Color(0xFFFF7070), // danger
+    const Color(0xFFFFC700), // edit
+    const Color(0xFF9C27B0), // purple
+    const Color(0xFFE91E63), // pink
+    const Color(0xFFF44336), // red
+    const Color(0xFFFF9800), // orange
+    const Color(0xFF4CAF50), // green
+    const Color(0xFF2196F3), // blue
+    const Color(0xFF00BCD4), // cyan
+    const Color(0xFF795548), // brown
+    const Color(0xFF607D8B), // blue grey
+  ];
 
   @override
   void initState() {
@@ -28,15 +50,29 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
     final drinkData = DrinksService().getDrinksByID(widget.drinksID);
     _controller.text = drinkData["name"];
     choosePosition = drinksIconList.indexOf(drinkData["icon"]);
+
+    // Load existing color if available
+    final rawDrinkData = DrinksService()
+        .getAllDrinks()
+        .firstWhere((d) => d["id"] == widget.drinksID);
+    if (rawDrinkData["color"] != null) {
+      selectedColor = UtilsService().hexToColor(rawDrinkData["color"]);
+    }
   }
 
-  updateDrinks(context) {
-    DrinksService().updateDrinks(widget.drinksID, _controller.text, drinksIconList[choosePosition]);
+  updateDrinks(context) async {
+    String? colorHex;
+    if (selectedColor != null) {
+      colorHex = UtilsService().colorToHex(selectedColor!);
+    }
+    await DrinksService().updateDrinks(
+        widget.drinksID, _controller.text, drinksIconList[choosePosition],
+        color: colorHex);
     back(context);
   }
 
-  deleteDrinks(context) {
-    DrinksService().deleteDrinks(widget.drinksID);
+  deleteDrinks(context) async {
+    await DrinksService().deleteDrinks(widget.drinksID);
     back(context);
   }
 
@@ -82,6 +118,53 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
               })),
       const SizedBox(height: 20),
       Padding(
+        padding: const EdgeInsets.only(left: 25, right: 25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Color",
+              style: TextStyle(
+                  fontSize: 14, color: dark, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: List.generate(
+                colorPalette.length,
+                (index) => InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedColor = colorPalette[index];
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colorPalette[index],
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selectedColor == colorPalette[index]
+                            ? dark
+                            : Colors.transparent,
+                        width: 3,
+                      ),
+                    ),
+                    child: selectedColor == colorPalette[index]
+                        ? const Icon(Icons.check, color: white, size: 20)
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 20),
+      Padding(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: Wrap(
           crossAxisAlignment: WrapCrossAlignment.start,
@@ -124,24 +207,27 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
               onTap: () {
                 if (_focusNode.hasFocus) {
                   _focusNode.unfocus();
-                  Timer(const Duration(milliseconds: 800), () => deleteDrinks(context));
+                  Timer(const Duration(milliseconds: 800),
+                      () => deleteDrinks(context));
                 } else {
                   deleteDrinks(context);
                 }
               },
-              borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(15)),
+              borderRadius:
+                  const BorderRadius.only(bottomLeft: Radius.circular(15)),
               child: Ink(
                 padding: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(
                     color: danger,
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(15))),
-                child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(Icons.delete, color: white),
-                  SizedBox(width: 5),
-                  Text("Delete", style: TextStyle(color: white))
-                ]),
+                    borderRadius:
+                        BorderRadius.only(bottomLeft: Radius.circular(15))),
+                child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete, color: white),
+                      SizedBox(width: 5),
+                      Text("Delete", style: TextStyle(color: white))
+                    ]),
               ),
             ),
           ),
@@ -153,25 +239,28 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
                     ? () {
                         if (_focusNode.hasFocus) {
                           _focusNode.unfocus();
-                          Timer(const Duration(milliseconds: 800), () => updateDrinks(context));
+                          Timer(const Duration(milliseconds: 800),
+                              () => updateDrinks(context));
                         } else {
                           updateDrinks(context);
                         }
                       }
                     : null,
-                borderRadius: const BorderRadius.only(
-                    bottomRight: Radius.circular(15)),
+                borderRadius:
+                    const BorderRadius.only(bottomRight: Radius.circular(15)),
                 child: Ink(
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(
                       color: light_secondary,
-                      borderRadius: BorderRadius.only(
-                          bottomRight: Radius.circular(15))),
-                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.check, color: white),
-                    SizedBox(width: 5),
-                    Text("Update", style: TextStyle(color: white))
-                  ]),
+                      borderRadius:
+                          BorderRadius.only(bottomRight: Radius.circular(15))),
+                  child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check, color: white),
+                        SizedBox(width: 5),
+                        Text("Update", style: TextStyle(color: white))
+                      ]),
                 ),
               ),
             ),

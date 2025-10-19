@@ -126,7 +126,7 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                       },
                       child: const Icon(
                         Icons.emoji_events,
-                        color: Color(0xFFFFD700), // Gold color
+                        color: Color.fromARGB(255, 255, 170, 0), // Gold color
                         size: 80,
                       ),
                     ),
@@ -170,7 +170,7 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.monetization_on, color: Color(0xFFFFD700), size: 24),
+                            Icon(Icons.monetization_on, color: Color.fromARGB(255, 255, 170, 0), size: 24),
                             SizedBox(width: 8),
                             Text(
                               '+10 coins earned!',
