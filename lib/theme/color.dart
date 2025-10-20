@@ -5,7 +5,7 @@ const Color secondary = Color(0xFF366C8E);
 const Color light_secondary = Color(0xFF3B7DA8);
 
 const Color warning = Color(0xFFFFBF5E);
-const Color success = Color(0xFF00FF85);
+const Color success = Color.fromARGB(255, 15, 206, 72);
 const Color danger = Color(0xFFFF7070);
 const Color edit = Color(0xFFFFC700);
 

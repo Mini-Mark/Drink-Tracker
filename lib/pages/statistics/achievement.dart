@@ -64,7 +64,7 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
 
     return Container(
       decoration: BoxDecoration(
-        color: achievement.isCompleted ? warning : grey,
+        color: achievement.isCompleted ? warning : primary.withAlpha(30),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -186,7 +186,7 @@ class _StatisticsAchievementState extends State<StatisticsAchievement> {
                       value: progressPercentage / 100,
                       backgroundColor: white.withValues(alpha: 0.3),
                       valueColor:
-                          const AlwaysStoppedAnimation<Color>(secondary),
+                          const AlwaysStoppedAnimation<Color>(danger),
                       minHeight: 8,
                     ),
                   ),
