@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import '../data_json/drinks_json.dart';
 import '../models/drink_entry.dart';
 
 /// Utility class for mixing colors based on drink consumption
 class ColorMixer {
   /// Mix colors from multiple drinks based on their volumes
   /// Returns a blended color representing all drinks consumed
-  static Color mixDrinkColors(List<DrinkEntry> entries) {
+  static Color mixDrinkColors(List<DrinkEntry> entries, List<Map<String, dynamic>> drinksList) {
     if (entries.isEmpty) {
       // Default to blue water color if no drinks
       return const Color(0xFF2196F3);
@@ -25,10 +24,10 @@ class ColorMixer {
     double totalBlue = 0;
 
     for (var entry in entries) {
-      // Find the drink color from drinkLists
-      final drink = drinkLists.firstWhere(
+      // Find the drink color from drinksList
+      final drink = drinksList.firstWhere(
         (d) => d['id'] == entry.drinkId,
-        orElse: () => drinkLists[0], // Default to water
+        orElse: () => drinksList.isNotEmpty ? drinksList[0] : {'color': '#2196F3'}, // Default to water
       );
 
       // Parse hex color

@@ -47,6 +47,7 @@ void main() async {
       coinService: coinService,
       shopService: shopService,
       aquariumService: aquariumService,
+      drinksService: drinksService,
     );
 
     // Load initial data

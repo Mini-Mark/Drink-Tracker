@@ -91,9 +91,36 @@ class _BottomNavigatorState extends State<BottomNavigator> {
             leftCornerRadius: 0,
             rightCornerRadius: 0,
             onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              // Show "Coming Soon" popup for Shop (index 4)
+              if (index == 4) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text(
+                      'Coming Soon',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    content: const Text(
+                      'The Shop feature is coming soon! Stay tuned for exciting items and rewards.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                setState(() {
+                  _currentIndex = index;
+                });
+              }
             },
           ),
         ],

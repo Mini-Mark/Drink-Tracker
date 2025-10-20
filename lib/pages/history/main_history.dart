@@ -1,4 +1,3 @@
-import 'package:drinktracker/data_json/drinks_json.dart';
 import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
@@ -278,8 +277,9 @@ class _MainHistoryState extends State<MainHistory> {
 
   Widget _historyCard(context, entry, AppState appState, bool isSelectionMode,
       bool isSelected) {
-    // Lookup drink data from drinkLists
-    final drinkData = drinkLists.firstWhere(
+    // Lookup drink data from appState
+    final drinksList = appState.getAllDrinks();
+    final drinkData = drinksList.firstWhere(
       (drink) => drink['id'] == entry.drinkId,
       orElse: () => {
         'id': entry.drinkId,

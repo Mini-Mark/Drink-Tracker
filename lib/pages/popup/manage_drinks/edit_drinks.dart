@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:drinktracker/data_json/drinks_icons_list.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/widgets/textfield.dart';
-import 'package:drinktracker/services/drinks_service.dart';
+import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Popup_EditDrinks extends StatefulWidget {
   final int drinksID;
@@ -40,17 +41,23 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
   @override
   void initState() {
     super.initState();
-    final drinkData = DrinksService().getDrinksByID(widget.drinksID);
-    _controller.text = drinkData["name"];
-    choosePosition = drinksIconList.indexOf(drinkData["icon"]);
+    // Delay initialization to after first frame when context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      final drinkData = appState.getDrinksByID(widget.drinksID);
+      setState(() {
+        _controller.text = drinkData["name"];
+        choosePosition = drinksIconList.indexOf(drinkData["icon"]);
 
-    // Load existing color if available
-    final rawDrinkData = DrinksService()
-        .getAllDrinks()
-        .firstWhere((d) => d["id"] == widget.drinksID);
-    if (rawDrinkData["color"] != null) {
-      selectedColor = UtilsService().hexToColor(rawDrinkData["color"]);
-    }
+        // Load existing color if available
+        final rawDrinkData = appState
+            .getAllDrinks()
+            .firstWhere((d) => d["id"] == widget.drinksID);
+        if (rawDrinkData["color"] != null) {
+          selectedColor = UtilsService().hexToColor(rawDrinkData["color"]);
+        }
+      });
+    });
   }
 
   updateDrinks(context) async {
@@ -58,14 +65,16 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
     if (selectedColor != null) {
       colorHex = UtilsService().colorToHex(selectedColor!);
     }
-    await DrinksService().updateDrinks(
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.updateDrink(
         widget.drinksID, _controller.text, drinksIconList[choosePosition],
         color: colorHex);
     back(context);
   }
 
   deleteDrinks(context) async {
-    await DrinksService().deleteDrinks(widget.drinksID);
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.deleteDrink(widget.drinksID);
     back(context);
   }
 

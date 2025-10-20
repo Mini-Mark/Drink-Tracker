@@ -1,5 +1,4 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:drinktracker/services/drinks_service.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
@@ -30,7 +29,7 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
 
   Future<void> _addDrinkEntry() async {
     if (_isAdding) return;
-    
+
     setState(() {
       _isAdding = true;
     });
@@ -38,13 +37,13 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
     try {
       final appState = Provider.of<AppState>(context, listen: false);
       final result = await appState.addDrinkEntry(widget.drinksID, widget.ml);
-      
+
       if (mounted) {
         // Show goal completion celebration if goal was just completed
         if (result['goalCompleted'] == true) {
           _showGoalCompletionCelebration();
         }
-        
+
         // Check for newly completed achievements
         final newlyCompleted = result['newlyCompletedAchievements'];
         if (newlyCompleted != null && newlyCompleted.isNotEmpty) {
@@ -162,7 +161,8 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                         );
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
                           color: success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
@@ -170,7 +170,9 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.monetization_on, color: Color.fromARGB(255, 255, 170, 0), size: 24),
+                            Icon(Icons.monetization_on,
+                                color: Color.fromARGB(255, 255, 170, 0),
+                                size: 24),
                             SizedBox(width: 8),
                             Text(
                               '+10 coins earned!',
@@ -191,7 +193,8 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: secondary,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -219,12 +222,12 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
     // Show achievements one at a time to avoid stacking dialogs
     for (var achievement in achievements) {
       if (!mounted) return;
-      
+
       await showAchievementUnlockDialog(
         context,
         achievement,
       );
-      
+
       // Small delay between showing multiple achievements
       if (achievements.indexOf(achievement) < achievements.length - 1) {
         await Future.delayed(const Duration(milliseconds: 300));
@@ -235,8 +238,8 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-
-    dynamic drinksData = DrinksService().getDrinksByID(widget.drinksID);
+    final appState = Provider.of<AppState>(context, listen: false);
+    dynamic drinksData = appState.getDrinksByID(widget.drinksID);
 
     return Column(
       children: [
@@ -262,9 +265,13 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                   },
                   child: Stack(alignment: Alignment.topRight, children: [
                     Icon(drinksData["icon"],
-                        color: dark, size: size.width * 0.25),
+                        color: drinksData["color"] == null
+                            ? dark
+                            : drinksData["color"],
+                        size: size.width * 0.25),
                     const Icon(Icons.circle, color: white, size: 30),
-                    const Icon(Icons.check_circle_rounded, color: success, size: 30),
+                    const Icon(Icons.check_circle_rounded,
+                        color: success, size: 30),
                   ]),
                 ),
                 const SizedBox(
@@ -275,9 +282,12 @@ class _Popup_SuccessAddDrinksState extends State<Popup_SuccessAddDrinks> {
                     TextSpan(
                         text: "Added ",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: title_lg - 4,
-                            color: secondary),
+                          fontWeight: FontWeight.bold,
+                          fontSize: title_lg - 4,
+                          color: drinksData["color"] == null
+                              ? dark
+                              : drinksData["color"],
+                        ),
                         children: [
                           TextSpan(
                             text: "${drinksData['name']} ${widget.ml}ml",

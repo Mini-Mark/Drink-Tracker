@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:drinktracker/data_json/drinks_icons_list.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/widgets/textfield.dart';
-import 'package:drinktracker/services/drinks_service.dart';
+import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Popup_AddDrinks extends StatefulWidget {
   @override
@@ -46,7 +47,8 @@ class _Popup_AddDrinksState extends State<Popup_AddDrinks> {
     if (selectedColor != null) {
       colorHex = UtilsService().colorToHex(selectedColor!);
     }
-    await DrinksService().addDrinks(
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.addDrink(
         _controller.text, drinksIconList[choosePosition],
         color: colorHex);
 

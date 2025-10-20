@@ -382,10 +382,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             )
           else
             TextButton(
-              onPressed: _toggleEditMode,
+              onPressed: _isSaving ? null : _saveChanges,
               child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.red),
+                'Save',
+                style: TextStyle(color: success),
               ),
             ),
         ],
@@ -412,61 +412,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // Daily Water Requirement with Wave Animation - Fixed at top, full width
-                SizedBox(
-                  width: double.infinity,
-                  height: 240,
-                  child: Stack(
-                    children: [
-                      // Wave animation at the bottom
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 240,
-                        child: AnimatedWaveAnimation(
-                          heightPercent: 100,
-                          callback: () {},
-                          color: primary,
-                        ),
-                      ),
-
-                      // Text content at the top
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 44),
-                              Text(
-                                '${profile.dailyWaterRequirement} ml',
-                                style: const TextStyle(
-                                  fontSize: title_xl,
-                                  fontWeight: FontWeight.bold,
-                                  color: dark,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${(profile.dailyWaterRequirement / 1000).toStringAsFixed(1)} liters per day',
-                                style: TextStyle(
-                                  fontSize: text_md,
-                                  color: dark.withValues(alpha: 0.9),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
                 // Scrollable Profile Information Section
                 Expanded(
                   child: SingleChildScrollView(
@@ -637,44 +582,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               _getExerciseLabel(profile.exerciseFrequency),
                               Icons.fitness_center,
                             ),
-
-                          if (_isEditing) ...[
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                onPressed: _isSaving ? null : _saveChanges,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: primary,
-                                  foregroundColor: white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 4,
-                                ),
-                                child: _isSaving
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Save Changes',
-                                        style: TextStyle(
-                                          fontSize: title_md,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
+                  ),
+                ),
+
+                // Daily Water Requirement with Wave Animation - Fixed at top, full width
+                SizedBox(
+                  width: double.infinity,
+                  height: 240,
+                  child: Stack(
+                    children: [
+                      // Wave animation at the bottom
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 240,
+                        child: AnimatedWaveAnimation(
+                          heightPercent: 100,
+                          callback: () {},
+                          color: primary,
+                        ),
+                      ),
+
+                      // Text content at the top
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 44),
+                              Text(
+                                '${profile.dailyWaterRequirement} ml',
+                                style: const TextStyle(
+                                  fontSize: title_xl,
+                                  fontWeight: FontWeight.bold,
+                                  color: dark,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${(profile.dailyWaterRequirement / 1000).toStringAsFixed(1)} liters per day',
+                                style: TextStyle(
+                                  fontSize: text_md,
+                                  color: dark.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

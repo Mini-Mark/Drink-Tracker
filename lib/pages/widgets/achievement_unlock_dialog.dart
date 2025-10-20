@@ -67,7 +67,7 @@ class _AchievementUnlockDialogState extends State<AchievementUnlockDialog>
             ),
           ),
         ),
-        
+
         // Dialog content
         Center(
           child: ScaleTransition(
@@ -81,144 +81,123 @@ class _AchievementUnlockDialogState extends State<AchievementUnlockDialog>
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        primary.withValues(alpha: 0.1),
-                        white,
-                      ],
-                    ),
+                    color: white,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Stack(
                     children: [
-                      // Trophy icon
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: primary.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.emoji_events,
-                          size: 50,
-                          color: primary,
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // "Achievement Unlocked!" text
-                      const Text(
-                        'Achievement Unlocked!',
-                        style: TextStyle(
-                          fontSize: title_lg,
-                          fontWeight: FontWeight.bold,
-                          color: primary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Achievement name
-                      Text(
-                        widget.achievement.name,
-                        style: const TextStyle(
-                          fontSize: title_md,
-                          fontWeight: FontWeight.w600,
-                          color: dark,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: 8),
-                      
-                      // Achievement description
-                      Text(
-                        widget.achievement.description,
-                        style: TextStyle(
-                          fontSize: text_md,
-                          color: dark.withValues(alpha: 0.7),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Coin reward display
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: Colors.amber,
-                            width: 2,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.monetization_on,
-                              color: Colors.amber,
-                              size: 28,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '+${widget.achievement.coinReward}',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amber,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'coins',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.amber,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Close button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
+                      // Close button at top right
+                      Positioned(
+                        top: -15,
+                        right: -15,
+                        child: IconButton(
+                          icon: const Icon(Icons.close),
                           onPressed: () {
                             Navigator.of(context).pop();
                             widget.onDismiss?.call();
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primary,
-                            foregroundColor: white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Awesome!',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          color: dark.withValues(alpha: 0.6),
+                          iconSize: 24,
                         ),
+                      ),
+
+                      // Main content
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Trophy icon on the left
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.emoji_events,
+                              size: 50,
+                              color: Colors.orange,
+                            ),
+                          ),
+
+                          const SizedBox(width: 16),
+
+                          // Details on the right
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Achievement name
+                                Text(
+                                  widget.achievement.name,
+                                  style: const TextStyle(
+                                    fontSize: title_md,
+                                    fontWeight: FontWeight.w600,
+                                    color: dark,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Achievement description
+                                Text(
+                                  widget.achievement.description,
+                                  style: TextStyle(
+                                    fontSize: text_md,
+                                    color: dark.withValues(alpha: 0.7),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // Coin reward display
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                      color: Colors.orange,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.monetization_on,
+                                        color: Colors.orange,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '+${widget.achievement.coinReward}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: dark,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        'coins',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: dark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

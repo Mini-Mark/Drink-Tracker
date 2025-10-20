@@ -5,11 +5,12 @@ import 'package:drinktracker/pages/popup/manage_drinks/add_quantity.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/edit_quantity.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/success_add_drinks.dart';
-import 'package:drinktracker/services/drinks_service.dart';
+import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:drinktracker/theme/font_size.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Popup_ChooseML extends StatelessWidget {
   final int drinksID;
@@ -18,8 +19,8 @@ class Popup_ChooseML extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-
-    dynamic drinksData = DrinksService().getDrinksByID(drinksID);
+    final appState = Provider.of<AppState>(context, listen: false);
+    dynamic drinksData = appState.getDrinksByID(drinksID);
 
     return Column(
       children: [
@@ -52,8 +53,10 @@ class Popup_ChooseML extends StatelessWidget {
   }
 
   List<Widget> getMLList(context) {
-    List<Widget> drinkWidgets =
-        List.generate(mlList.length, (index) => mlItem(context, mlList[index]));
+    final appState = Provider.of<AppState>(context, listen: false);
+    dynamic drinksData = appState.getDrinksByID(drinksID);
+    List<Widget> drinkWidgets = List.generate(
+        mlList.length, (index) => mlItem(context, mlList[index], drinksData));
     drinkWidgets.insert(0, addMLWidget(context));
 
     return drinkWidgets;
@@ -98,10 +101,13 @@ class Popup_ChooseML extends StatelessWidget {
     );
   }
 
-  Widget mlItem(context, data) {
+  Widget mlItem(context, data, drinksData) {
     var size = MediaQuery.of(context).size;
+    Color drinkColor =
+        drinksData["color"] == null ? light_secondary : drinksData["color"];
+
     return InkWell(
-      splashColor: primary.withAlpha(150),
+      splashColor: drinkColor.withAlpha(150),
       onTap: () {
         Navigator.of(context).pop();
         PopupService()
@@ -132,8 +138,9 @@ class Popup_ChooseML extends StatelessWidget {
               alignment: Alignment.center,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
+                  color: drinkColor.withAlpha(35),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: light_secondary, width: 1.2)),
+                  border: Border.all(color: drinkColor, width: 1.2)),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -153,7 +160,7 @@ class Popup_ChooseML extends StatelessWidget {
                                   fontSize: text_md),
                             )
                           ]),
-                      style: TextStyle(color: light_secondary),
+                      style: TextStyle(color: drinkColor),
                       maxLines: 2,
                       textAlign: TextAlign.center,
                       minFontSize: 10,

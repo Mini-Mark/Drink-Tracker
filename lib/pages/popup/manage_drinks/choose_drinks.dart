@@ -1,13 +1,14 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:drinktracker/data_json/drinks_json.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/add_drinks.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_ml.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/edit_drinks.dart';
+import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/services/utils_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Popup_ChooseDrink extends StatelessWidget {
   const Popup_ChooseDrink({super.key});
@@ -38,6 +39,8 @@ class Popup_ChooseDrink extends StatelessWidget {
   }
 
   List<Widget> getDrinksList(context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final drinkLists = appState.getAllDrinks();
     List<Widget> drinkWidgets = List.generate(
         drinkLists.length, (index) => drinksItem(context, drinkLists[index]));
     drinkWidgets.insert(0, addDrinksWidget(context));

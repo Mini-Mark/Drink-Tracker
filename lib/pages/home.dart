@@ -44,7 +44,8 @@ class _HomeState extends State<Home> {
 
         // Get drink entries for selected date and calculate mixed color
         final drinkEntries = appState.getDrinkEntriesForSelectedDate();
-        final waveColor = ColorMixer.mixDrinkColors(drinkEntries);
+        final drinksList = appState.getAllDrinks();
+        final waveColor = ColorMixer.mixDrinkColors(drinkEntries, drinksList);
 
         // Calculate image step based on consumption (with safety checks)
         final waterSteps = imageSrc().water_step;
@@ -118,7 +119,7 @@ class _HomeState extends State<Home> {
                         "$currentML ML",
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: secondary,
+                            color: danger,
                             fontSize: title_xl),
                       ),
                       const SizedBox(
@@ -156,94 +157,91 @@ class _HomeState extends State<Home> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Flexible(
-                          child: Transform.scale(
-                            scale: 0.8,
-                            child: Material(
-                              elevation: 0,
-                              shape: const CircleBorder(),
-                              color: white,
-                              child: FloatingActionButton(
-                                heroTag: null,
-                                backgroundColor: secondary,
-                                onPressed: () async {
-                                  PopupService().show(context,
-                                      callback: refreshHomePage,
-                                      dialog: const Popup_ChooseDrink(),
-                                      outsideHint: "hold to edit");
-                                },
-                                child: Transform.scale(
-                                  scale: 1.4,
-                                  child: const Icon(
-                                    Icons.add,
-                                    color: white,
-                                  ),
+                          child: Material(
+                            elevation: 0,
+                            shape: const CircleBorder(),
+                            color: white,
+                            child: FloatingActionButton(
+                              heroTag: null,
+                              backgroundColor: danger,
+                              onPressed: () async {
+                                PopupService().show(context,
+                                    callback: refreshHomePage,
+                                    dialog: const Popup_ChooseDrink(),
+                                    outsideHint: "hold to edit");
+                              },
+                              child: Transform.scale(
+                                scale: 1.4,
+                                child: const Icon(
+                                  Icons.add,
+                                  color: white,
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Flexible(
-                          child: Transform.scale(
-                            scale: 0.8,
-                            child: Material(
-                              elevation: 0,
-                              shape: const CircleBorder(),
-                              color: secondary,
-                              child: FloatingActionButton(
-                                heroTag: null,
-                                backgroundColor: secondary,
-                                onPressed: () {
-                                  try {
-                                    Navigator.pushNamed(context, "/statistics");
-                                  } catch (e) {
-                                    // Error navigating
-                                  }
-                                },
-                                child: Transform.scale(
-                                  scale: 1.4,
-                                  child: const Icon(
-                                    Icons.bar_chart_sharp,
-                                    color: white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Flexible(
-                          child: Transform.scale(
-                            scale: 0.8,
-                            child: Material(
-                              elevation: 0,
-                              shape: const CircleBorder(),
-                              color: secondary,
-                              child: FloatingActionButton(
-                                heroTag: null,
-                                backgroundColor: secondary,
-                                onPressed: () {
-                                  try {
-                                    Navigator.pushNamed(context, "/history");
-                                  } catch (e) {
-                                    // Error navigating
-                                  }
-                                },
-                                child: Transform.scale(
-                                  scale: 1.4,
-                                  child: const Icon(
-                                    Icons.history,
-                                    color: white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // const SizedBox(
+                        //   height: 20,
+                        // ),
+                        // Flexible(
+                        //   child: Transform.scale(
+                        //     scale: 0.8,
+                        //     child: Material(
+                        //       elevation: 0,
+                        //       shape: const CircleBorder(),
+                        //       color: secondary,
+                        //       child: FloatingActionButton(
+                        //         heroTag: null,
+                        //         backgroundColor: secondary,
+                        //         onPressed: () {
+                        //           try {
+                        //             Navigator.pushNamed(context, "/statistics");
+                        //           } catch (e) {
+                        //             // Error navigating
+                        //           }
+                        //         },
+                        //         child: Transform.scale(
+                        //           scale: 1.4,
+                        //           child: const Icon(
+                        //             Icons.bar_chart_sharp,
+                        //             color: white,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 20,
+                        // ),
+                        // Flexible(
+                        //   child: Transform.scale(
+                        //     scale: 0.8,
+                        //     child: Material(
+                        //       elevation: 0,
+                        //       shape: const CircleBorder(),
+                        //       color: secondary,
+                        //       child: FloatingActionButton(
+                        //         heroTag: null,
+                        //         backgroundColor: secondary,
+                        //         onPressed: () {
+                        //           try {
+                        //             Navigator.pushNamed(context, "/history");
+                        //           } catch (e) {
+                        //             // Error navigating
+                        //           }
+                        //         },
+                        //         child: Transform.scale(
+                        //           scale: 1.4,
+                        //           child: const Icon(
+                        //             Icons.history,
+                        //             color: white,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   )),
@@ -296,11 +294,10 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     var indexOfThreeDaysAgo = indexOfToday - 3;
     indexOfThreeDaysAgo = indexOfThreeDaysAgo < 0 ? 0 : indexOfThreeDaysAgo;
 
-    final size = MediaQuery.of(context).size;
-    final targetOffset = indexOfThreeDaysAgo * (size.width * 0.1428);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
+        final size = MediaQuery.of(context).size;
+        final targetOffset = indexOfThreeDaysAgo * (size.width * 0.1428);
         _scrollController.jumpTo(targetOffset);
       }
     });

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' hide Decoration;
 import '../models/user_profile.dart';
 import '../models/drink_entry.dart';
 import '../models/achievement.dart';
@@ -11,6 +12,7 @@ import '../services/achievement_service.dart';
 import '../services/coin_service.dart';
 import '../services/shop_service.dart';
 import '../services/aquarium_service.dart';
+import '../services/drinks_service.dart';
 import '../repositories/local_storage_repository.dart';
 
 /// Central state management for the Drink Tracker app
@@ -24,6 +26,7 @@ class AppState extends ChangeNotifier {
   final CoinService _coinService;
   final ShopService _shopService;
   final AquariumService _aquariumService;
+  final DrinksService _drinksService;
 
   // State properties
   UserProfile? _userProfile;
@@ -42,13 +45,15 @@ class AppState extends ChangeNotifier {
     required CoinService coinService,
     required ShopService shopService,
     required AquariumService aquariumService,
+    required DrinksService drinksService,
   })  : _repository = repository,
         _profileService = profileService,
         _waterTrackingService = waterTrackingService,
         _achievementService = achievementService,
         _coinService = coinService,
         _shopService = shopService,
-        _aquariumService = aquariumService;
+        _aquariumService = aquariumService,
+        _drinksService = drinksService;
 
   // Getters for state properties
   UserProfile? get userProfile => _userProfile;
@@ -64,21 +69,21 @@ class AppState extends ChangeNotifier {
   /// Should be called when app starts
   Future<void> loadInitialData() async {
     _setLoading(true);
-    
+
     try {
       // Load user profile
       _userProfile = await _profileService.getProfile();
-      
+
       // Load drink entries
       _drinkEntries = _repository.getDrinkEntries();
-      
+
       // Load achievements (initialize if empty)
       _achievements = _repository.getAchievements();
       if (_achievements.isEmpty) {
         _achievements = _achievementService.initializeAchievements();
         await _repository.saveAchievements(_achievements);
       }
-      
+
       // Load user inventory (create default if null)
       _inventory = _repository.getUserInventory();
       if (_inventory == null) {
@@ -91,10 +96,10 @@ class AppState extends ChangeNotifier {
         );
         await _repository.saveUserInventory(_inventory!);
       }
-      
+
       // Set selected date to today
       _selectedDate = DateTime.now();
-      
+
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading initial data: $e');
@@ -130,28 +135,31 @@ class AppState extends ChangeNotifier {
       final dailyRequirement = _userProfile?.dailyWaterRequirement ?? 2000;
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      
+
       // Get consumption BEFORE adding the new entry
-      final consumptionBefore = _waterTrackingService.getTotalConsumptionForDate(today);
+      final consumptionBefore =
+          _waterTrackingService.getTotalConsumptionForDate(today);
       final wasGoalMet = consumptionBefore >= dailyRequirement;
-      
+
       // Add drink entry through service
-      final entry = await _waterTrackingService.addDrinkEntry(drinkId, mlAmount);
-      
+      final entry =
+          await _waterTrackingService.addDrinkEntry(drinkId, mlAmount);
+
       // Update local state
       _drinkEntries = _repository.getDrinkEntries();
-      
+
       // Get consumption AFTER adding the new entry
-      final consumptionAfter = _waterTrackingService.getTotalConsumptionForDate(today);
+      final consumptionAfter =
+          _waterTrackingService.getTotalConsumptionForDate(today);
       final isGoalMetNow = consumptionAfter >= dailyRequirement;
-      
+
       // Check if goal was just completed with this entry
       bool goalJustCompleted = false;
       if (!wasGoalMet && isGoalMetNow) {
         // Goal was just completed! Check if we already awarded coins today
         final lastAwardDate = _repository.getLastDailyGoalAwardDate();
-        
-        if (lastAwardDate == null || 
+
+        if (lastAwardDate == null ||
             lastAwardDate.year != today.year ||
             lastAwardDate.month != today.month ||
             lastAwardDate.day != today.day) {
@@ -162,12 +170,12 @@ class AppState extends ChangeNotifier {
           goalJustCompleted = true;
         }
       }
-      
+
       // Refresh achievements and get newly completed ones
       final newlyCompletedAchievements = await refreshAchievements();
-      
+
       notifyListeners();
-      
+
       return {
         'entry': entry,
         'goalCompleted': goalJustCompleted,
@@ -197,7 +205,8 @@ class AppState extends ChangeNotifier {
 
   /// Get drink entries for the selected date
   List<DrinkEntry> getDrinkEntriesForSelectedDate() {
-    final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
     return _drinkEntries.where((entry) => entry.date == dateStr).toList();
   }
 
@@ -206,13 +215,13 @@ class AppState extends ChangeNotifier {
   Future<void> deleteDrinkEntry(String entryId) async {
     try {
       await _waterTrackingService.deleteDrinkEntry(entryId);
-      
+
       // Update local state
       _drinkEntries = _repository.getDrinkEntries();
-      
+
       // Refresh achievements as deletion may affect achievement progress
       await refreshAchievements();
-      
+
       notifyListeners();
     } catch (e) {
       debugPrint('Error deleting drink entry: $e');
@@ -225,24 +234,25 @@ class AppState extends ChangeNotifier {
   Future<List<Achievement>> refreshAchievements() async {
     try {
       final dailyRequirement = _userProfile?.dailyWaterRequirement ?? 2000;
-      
-      final newlyCompleted = await _achievementService.checkAndUpdateAchievements(
+
+      final newlyCompleted =
+          await _achievementService.checkAndUpdateAchievements(
         _drinkEntries,
         _inventory,
         dailyRequirement,
       );
-      
+
       // Update local achievements state
       _achievements = _repository.getAchievements();
-      
+
       // Award coins for newly completed achievements
       for (final achievement in newlyCompleted) {
         await _coinService.awardAchievementCoins(achievement);
       }
-      
+
       // Update inventory to reflect coin changes
       _inventory = _repository.getUserInventory();
-      
+
       notifyListeners();
       return newlyCompleted;
     } catch (e) {
@@ -255,41 +265,42 @@ class AppState extends ChangeNotifier {
 
   /// Purchase an item (fish or decoration) from the shop
   /// Returns a map with success status and newly completed achievements
-  Future<Map<String, dynamic>> purchaseItem(String itemId, String itemType) async {
+  Future<Map<String, dynamic>> purchaseItem(
+      String itemId, String itemType) async {
     try {
       bool success = false;
-      
+
       if (itemType == 'fish') {
         success = await _shopService.purchaseFish(itemId);
-        
+
         // If purchase successful, automatically add fish to aquarium
         if (success) {
           await _aquariumService.addFishToAquarium(itemId);
         }
       } else if (itemType == 'decoration') {
         success = await _shopService.purchaseDecoration(itemId);
-        
+
         // If purchase successful, automatically add decoration to aquarium
         if (success) {
           await _aquariumService.addDecorationToAquarium(itemId);
         }
       }
-      
+
       if (success) {
         // Update inventory state
         _inventory = _repository.getUserInventory();
-        
+
         // Refresh achievements (aquarium achievements may be unlocked)
         final newlyCompletedAchievements = await refreshAchievements();
-        
+
         notifyListeners();
-        
+
         return {
           'success': true,
           'newlyCompletedAchievements': newlyCompletedAchievements,
         };
       }
-      
+
       return {
         'success': false,
         'newlyCompletedAchievements': [],
@@ -340,6 +351,57 @@ class AppState extends ChangeNotifier {
   /// Get decoration catalog from shop service
   List<Decoration> getDecorationCatalog() {
     return _shopService.getDecorationCatalog();
+  }
+
+  // Drinks management methods
+
+  /// Get all available drinks
+  List<Map<String, dynamic>> getAllDrinks() {
+    return _drinksService.getAllDrinks();
+  }
+
+  /// Get drink information by ID
+  Map<String, dynamic> getDrinksByID(int id) {
+    return _drinksService.getDrinksByID(id);
+  }
+
+  /// Get drink name by ID
+  String getDrinkNameByID(int id) {
+    return _drinksService.getDrinkNameByID(id);
+  }
+
+  /// Add a new drink type
+  Future<void> addDrink(String name, IconData icon, {String? color}) async {
+    try {
+      await _drinksService.addDrinks(name, icon, color: color);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error adding drink: $e');
+      rethrow;
+    }
+  }
+
+  /// Update an existing drink
+  Future<void> updateDrink(int id, String name, IconData icon,
+      {String? color}) async {
+    try {
+      await _drinksService.updateDrinks(id, name, icon, color: color);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating drink: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a drink by ID
+  Future<void> deleteDrink(int id) async {
+    try {
+      await _drinksService.deleteDrinks(id);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting drink: $e');
+      rethrow;
+    }
   }
 
   // Profile management methods
