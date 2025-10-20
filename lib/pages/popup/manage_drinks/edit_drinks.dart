@@ -178,7 +178,9 @@ class _Popup_EditDrinksState extends State<Popup_EditDrinks> {
                             borderRadius: BorderRadius.circular(5)),
                         child: Icon(
                           drinksIconList[index],
-                          color: choosePosition == index ? secondary : dark,
+                          color: choosePosition == index
+                              ? (selectedColor ?? colorPalette[0])
+                              : dark,
                           size: size.width * 0.07,
                         ),
                       ),

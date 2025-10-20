@@ -84,7 +84,7 @@ class Popup_ChooseDrink extends StatelessWidget {
   Widget drinksItem(context, data) {
     var size = MediaQuery.of(context).size;
     return InkWell(
-      splashColor: primary.withAlpha(150),
+      splashColor: UtilsService().hexToColor(data["color"]).withAlpha(150),
       onTap: () {
         Navigator.of(context).pop();
         PopupService().show(context,
@@ -106,6 +106,8 @@ class Popup_ChooseDrink extends StatelessWidget {
               alignment: Alignment.center,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
+                  color:
+                      UtilsService().hexToColor(data["color"]).withAlpha(35),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                       color: data["color"] == null
