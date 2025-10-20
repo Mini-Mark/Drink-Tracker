@@ -17,6 +17,7 @@ import 'package:drinktracker/services/coin_service.dart';
 import 'package:drinktracker/services/shop_service.dart';
 import 'package:drinktracker/services/aquarium_service.dart';
 import 'package:drinktracker/services/drinks_service.dart';
+import 'package:drinktracker/services/ml_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,10 @@ void main() async {
     // Initialize drinks service
     final drinksService = DrinksService();
     await drinksService.initialize();
+
+    // Initialize ML service
+    final mlService = MLService();
+    await mlService.initialize();
 
     // Initialize services
     final profileService = ProfileService(repository);
@@ -48,6 +53,7 @@ void main() async {
       shopService: shopService,
       aquariumService: aquariumService,
       drinksService: drinksService,
+      mlService: mlService,
     );
 
     // Load initial data

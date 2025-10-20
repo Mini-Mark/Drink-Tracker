@@ -13,6 +13,7 @@ import '../services/coin_service.dart';
 import '../services/shop_service.dart';
 import '../services/aquarium_service.dart';
 import '../services/drinks_service.dart';
+import '../services/ml_service.dart';
 import '../repositories/local_storage_repository.dart';
 
 /// Central state management for the Drink Tracker app
@@ -27,6 +28,7 @@ class AppState extends ChangeNotifier {
   final ShopService _shopService;
   final AquariumService _aquariumService;
   final DrinksService _drinksService;
+  final MLService _mlService;
 
   // State properties
   UserProfile? _userProfile;
@@ -46,6 +48,7 @@ class AppState extends ChangeNotifier {
     required ShopService shopService,
     required AquariumService aquariumService,
     required DrinksService drinksService,
+    required MLService mlService,
   })  : _repository = repository,
         _profileService = profileService,
         _waterTrackingService = waterTrackingService,
@@ -53,7 +56,8 @@ class AppState extends ChangeNotifier {
         _coinService = coinService,
         _shopService = shopService,
         _aquariumService = aquariumService,
-        _drinksService = drinksService;
+        _drinksService = drinksService,
+        _mlService = mlService;
 
   // Getters for state properties
   UserProfile? get userProfile => _userProfile;
@@ -400,6 +404,46 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error deleting drink: $e');
+      rethrow;
+    }
+  }
+
+  // ML quantity management methods
+
+  /// Get all ML amounts
+  List<Map<String, dynamic>> getAllML() {
+    return _mlService.getAllML();
+  }
+
+  /// Add a new ML amount
+  Future<void> addML(int amount) async {
+    try {
+      await _mlService.addML(amount);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error adding ML: $e');
+      rethrow;
+    }
+  }
+
+  /// Update an existing ML amount
+  Future<void> updateML(int oldAmount, int newAmount) async {
+    try {
+      await _mlService.updateML(oldAmount, newAmount);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating ML: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete an ML amount
+  Future<void> deleteML(int amount) async {
+    try {
+      await _mlService.deleteML(amount);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting ML: $e');
       rethrow;
     }
   }

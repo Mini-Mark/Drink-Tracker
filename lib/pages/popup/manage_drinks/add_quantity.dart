@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:drinktracker/pages/popup/manage_drinks/choose_ml.dart';
 import 'package:drinktracker/pages/widgets/textfield.dart';
-import 'package:drinktracker/services/ml_service.dart';
+import 'package:drinktracker/providers/app_state.dart';
 import 'package:drinktracker/services/popup_service.dart';
 import 'package:drinktracker/theme/color.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Popup_AddQuantity extends StatefulWidget {
   final int drinksID;
@@ -51,12 +52,13 @@ class _Popup_AddQuantityState extends State<Popup_AddQuantity> {
     return true;
   }
 
-  addAmount(context) {
+  addAmount(context) async {
     if (!_validateVolume()) {
       return;
     }
     
-    MLService().addML(int.parse(_controller.text));
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.addML(int.parse(_controller.text));
 
     back(context);
   }

@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:drinktracker/data_json/ml_json.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/add_quantity.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/choose_drinks.dart';
 import 'package:drinktracker/pages/popup/manage_drinks/edit_quantity.dart';
@@ -55,6 +54,7 @@ class Popup_ChooseML extends StatelessWidget {
   List<Widget> getMLList(context) {
     final appState = Provider.of<AppState>(context, listen: false);
     dynamic drinksData = appState.getDrinksByID(drinksID);
+    final mlList = appState.getAllML();
     List<Widget> drinkWidgets = List.generate(
         mlList.length, (index) => mlItem(context, mlList[index], drinksData));
     drinkWidgets.insert(0, addMLWidget(context));
